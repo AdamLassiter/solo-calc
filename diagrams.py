@@ -9,7 +9,7 @@ class Node:
     A node N represents a named particle in a solo.
     """
 
-    def __init__(self, name: str) -> None:
+    def __init__(self, name: str = None) -> None:
         self.name = name
 
 
@@ -34,7 +34,7 @@ class Edge(tuple):
         self.arity = len(self.objects)
 
     @property
-    def nodes(self):
+    def nodes(self) -> set:
         return {node for node in self}
 
 
