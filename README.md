@@ -10,7 +10,7 @@ The project can be run from the src directory without any need for compiling/bui
 * Tkinter
 
 ## Contributing
-lease read [CONTRIBUTING.md](CONTRIBUTING.md) for details on code of conduct, and the process for submitting pull requests.
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on code of conduct, and the process for submitting pull requests.
 
 ## Authors
 This project remains the sole work of Adam Lassiter (https://github.com/AdamLassiter) (http://people.bath.ac.uk/atl35/).
