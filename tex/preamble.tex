@@ -1,0 +1,25 @@
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs}
+\usepackage{mathtools}
+\usepackage{natbib}
+\usepackage{pgfgantt}
+\usepackage{textcomp}
+\usepackage[hidelinks]{hyperref}
+\hypersetup{linktoc=all}
+
+% natbib source
+\bibliographystyle{plainnat}
+% no 'References' title
+\renewcommand{\bibsection}{}
+
+% pgfgantt weeks
+\newcounter{myWeekNum}
+\stepcounter{myWeekNum}
+\newcommand{\myWeek}{\themyWeekNum
+	\stepcounter{myWeekNum}
+	\ifnum\themyWeekNum=53
+	\setcounter{myWeekNum}{1}
+	\else\fi
+}
+\setcounter{myWeekNum}{44}
+\ganttset{calendar week text={\myWeek{}}}
