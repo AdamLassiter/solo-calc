@@ -107,7 +107,7 @@ class Diagram:
     A solo diagram SD is a triple (G, M, l) where:
         G is a graph, or finite multiset of edges,
         M is a finite multiset of boxes,
-        l is a map s.t. nodes[G] u principals[M] -> N := { all Nodes }
+        l is a labelling of nodes
     """
 
     def __init__(self, graph: Graph, boxes: Boxes, l: dict) -> None:
