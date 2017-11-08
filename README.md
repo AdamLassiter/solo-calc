@@ -13,7 +13,7 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on code of conduct, a
 
 ## Authors
 This project remains the sole work of Adam Lassiter (https://github.com/AdamLassiter) (http://people.bath.ac.uk/atl35/).  
-Attentin is directed towards [COPYRIGHT.md](COPYRIGHT.md) for more information.
+Attention is directed towards [COPYRIGHT.md](COPYRIGHT.md) for more information.
 
 ## License
 This project is licensed under the MIT License - see [LICENSE.md](LICENSE.md) for details.
