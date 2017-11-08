@@ -1,5 +1,5 @@
 # A Graphical Representation of the Solos Calculus
-A Python/Tkinter implementation of the Solos calculus and Solo diagrams.  
+A Python/Tkinter implementation of the Solos calculus and of Solos diagrams.  
 This forms the submission for CM30082 Dissertation, BSc Comp.Sci. w/ Maths. for Adam Lassiter, Uni. of Bath, 2017.
 
 ## Getting Started
@@ -7,7 +7,6 @@ The project can be run from the src directory without any need for compiling/bui
 
 ### Prerequisites
 * Python3
-* Tkinter
 
 ## Contributing
 Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on code of conduct, and the process for submitting pull requests.
