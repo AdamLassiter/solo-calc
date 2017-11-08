@@ -1,4 +1,4 @@
-# A Graphical Representation of the Solos Calculus
+# Dance of the Solos
 A Python/Tkinter implementation of the Solos calculus and of Solos diagrams.  
 This forms the submission for CM30082 Dissertation, MComp Comp.Sci. w/ Maths. for Adam Lassiter, University of Bath, UK, 2017.
 
