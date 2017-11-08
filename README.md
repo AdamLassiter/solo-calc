@@ -12,7 +12,8 @@ The project can be run from the src directory without any need for compiling/bui
 Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on code of conduct, and the process for submitting pull requests.
 
 ## Authors
-This project remains the sole work of Adam Lassiter (https://github.com/AdamLassiter) (http://people.bath.ac.uk/atl35/).
+This project remains the sole work of Adam Lassiter (https://github.com/AdamLassiter) (http://people.bath.ac.uk/atl35/).  
+Attentin is directed towards the [COPYRIGHT.md](COPYRIGHT.md) file for more information.
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
