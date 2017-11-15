@@ -5,6 +5,12 @@
 \usepackage{pgfgantt}
 \usepackage{textcomp}
 \usepackage[hidelinks]{hyperref}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{scrextend}
+\usepackage{stackengine}	
+\usepackage[symbol]{footmisc}
 \hypersetup{linktoc=all}
 
 % natbib source
@@ -23,3 +29,15 @@
 }
 \setcounter{myWeekNum}{44}
 \ganttset{calendar week text={\myWeek{}}}
+
+\setlength{\parindent}{0pt}
+
+\def\deltaeq{\mathrel{\ensurestackMath{\stackon[1pt]{=}{\scriptstyle\Delta}}}}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem*{definition*}{Definition}
+\newtheorem{example}{Example}
+\newtheorem*{example*}{Example}
+\newtheorem{corollary}{Corollary}
+\newtheorem*{corollary*}{Corollary}

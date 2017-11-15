@@ -29,58 +29,199 @@
 \section{Literature}
 
     \subsection{$\lambda$-calculus}
-        \subsubsection{Background}
-            \cite{lambda-calculus}
 
-        \subsubsection{Definitions}
+        Developed by Alonzo Church in the 1930s, the $\lambda$-calculus was the first such computational calculus and describes a mathematical representation of a computable function.
+        While when it was first designed, it was not expected to be relevant to the newly-emerging field of theoretical Computer Science but instead Discrete Mathematics, the $\lambda$-calculus in fact forms a universal model of computation and can contain an encoding of any single-taped Turing machine.
+        It has since become a popular formal system within which to study properties of computation.
+        
+        \label{ssubsec:lambda-calculus}
+        \begin{definition}
+            The $\lambda$-calculus, as defined by~\cite{lambda-calculus}\footnote{While Church's original paper is still available, the source cited is found to be more relevant due to research in the subject area since the original paper's publication in the 1930s.} consists of an expression $M$ built from the following terms:
+            \begin{equation}
+                M  \quad::=\quad  a  \quad|\quad  (\lambda x . M)  \quad|\quad  (M N)
+            \end{equation}
+            where the expressions each describe a variable, an abstraction and an application of a function on an argument respectively.
+        \end{definition}
+        From this, any computable function can be constructed and computation is achieved through a series of operations on the expression.
 
-        \subsubsection{Examples}
+        \begin{definition}{($\alpha$-substitution)}
+            Unbound variables within an expression may be substituted for any given value.
+            This is formally expressed as:
+            \begin{align}
+                x[y := P] := &
+                    \begin{cases}
+                        P & \text{if } x = y \\
+                        x & \text{otherwise}
+                    \end{cases} \\
+                (\lambda x . M)[y := P] := &
+                    \begin{cases}
+                        \lambda x . M & \text{if } x = y \\
+                        \lambda x . (M[y := P]) & \text{if } x \neq y \text{ and } x \notin FV(P) \footnotemark
+                    \end{cases}
+            \end{align} \footnotetext{Here, $FV(P)$ is the set of all variables $x$ such that $x$ is free (unbound) in $P$.}
+        \end{definition}
+        This operation may be thought of as variable renaming as long as both old and new names are free in the expression in which they were substituted.
 
+        \begin{corollary*}{($\alpha$-equivalence)}
+            The above definition of $\alpha$-substitution may be extended to give an equivalence relation on expressions, $\alpha$-equivalence, defined as:
+            \begin{align}
+                y \notin FV(M) & \implies \lambda x . M \equiv_\alpha \lambda y \, (M[x := y]) \\
+                M \equiv_\alpha M' & \implies
+                    \begin{cases}
+                        M \, P \equiv_\alpha M' \, P \\
+                        P \, M \equiv_\alpha P \, M' \\
+                        \lambda x . M \equiv_\alpha \lambda x. M'
+                    \end{cases}
+            \end{align}
+        \end{corollary*}
+
+        \begin{definition}{($\beta$-reduction)}
+            An expression may be simplified by applying one term to another through substitution of a term for a bound variable.
+            This is formally expressed as:
+            \begin{align}
+                (\lambda x . P) \, Q   & \rightarrow_\beta P[x := Q] \\
+                M \rightarrow_\beta M' & \implies
+                    \begin{cases}
+                        P \, M \rightarrow_\beta P M' \\
+                        M \, P \rightarrow_\beta M' P \\
+                        \lambda x . M \rightarrow_\beta \lambda x . M'
+                    \end{cases}
+            \end{align}
+        \end{definition}
+        Often $\beta$-reduction requires several steps at once and as such these multiple $\beta$-reduction steps are abbreviated to $\rightarrow_\beta^*$.
+
+        \begin{corollary*}{($\beta$-equivalence)}
+            The above definition of $\beta$-reduction may be extended to give an equivalence relation on expressions, $beta$-equivalence, defined as:
+            \begin{equation}
+                M \rightarrow_\beta^* P \text{ and } N \rightarrow_\beta^* P \implies M \equiv_\beta N
+            \end{equation}
+        \end{corollary*}
+        
+        \begin{example*}
+            The above corollaries can be seen to have desirable properties when examining whether two expressions describe equivalent computation.
+            \begin{align*}
+                \lambda a . x \, a [x := y] & \equiv \lambda a . y \, a \\
+                \\
+                \lambda x . x \, y & \equiv_\alpha \lambda z . z \, y \\
+                \lambda x . x \, y & \not\equiv_\alpha \lambda y . y \, y \\
+                \\
+                (\lambda a . x \, a) \, y & \rightarrow_\beta x \, a [a := y] \equiv x \, y
+            \end{align*}
+        \end{example*}
+
+        As computational calculus shares many parallels with modern functional programming, the following are encodings of some common functional concepts within the $\lambda$-calculus.
+
+        \begin{definition}{(List)}
+            Within the $\lambda$-calculus, lists may be encoded through the use of an arbitrary ${cons}$ function that takes a head element and a tail list and of a ${null}$ function that signifies the end of a list.
+            The list is then constructed as a singly-linked list might be constructed in other languages:
+            \begin{equation}
+                [x_1, \ldots, x_n] := \lambda c . \lambda n . (c \, x_1 \, (\ldots (c \, x_n \, n) \ldots) )
+            \end{equation}
+        \end{definition}
+
+        \begin{definition}{(Map)}
+            The $map$ function takes two arguments --- a function $F$ that itself takes one argument and a list of suitable arguments $[x_1, \ldots, x_n]$ to this function.
+            The output is then a list of the output of F when applied to each $x_1 \ldots x_n$.
+            \begin{equation}
+                {map} := \lambda f . \lambda l . (\lambda c . (l \, (\lambda x . c \, (f \, x))))
+            \end{equation}
+        \end{definition}
+
+            Below is an example for $n := 3$:
+            \begin{align*}
+                {map} \, F \, [x_1, x_2, x_3]
+                      & \equiv_{\alpha} \lambda f . \lambda l . (\lambda c . (l \, (\lambda x . c \, (f \, x)))) \, F \, \lambda c . \lambda n . (c \, x_1 \, (c \, x_2 \, (c \, x_3 \, n))) \\
+                      & \rightarrow_\beta^* \lambda c . (\lambda c . \lambda n . (c \, x_1 \, (c \, x_2 \, (c \, x_3 \, n))) \, (\lambda x . c \, (F \, x))) \\
+                      & \rightarrow_\beta^* \lambda c . (\lambda n . ((\lambda x . c \, (F \, x)) \, x_1 \, ((\lambda x . c \, (F \, x)) \, x_2 \, ((\lambda x . c \, (F \, x)) \, x_3 \, n)))) \\
+                      & \rightarrow_\beta^* \lambda c . (\lambda n . (c \, (F \, x_1) \, (c \, (F \, x_2) \, (c \, (F \, x_3) \, n)))) \\
+                      & \equiv_{\alpha} [F \, x_1, F \, x_2, F \, x_3]
+            \end{align*}
+
+        
         \subsubsection{Evaluation}
+            While the $\lambda$-calculus has been successful and been studied by various areas of academia outside of Computer Science, it is limited in application by its fundamentally `single-process' model and struggles to describe multiple systems working and communicating together.
 
 
-    \subsection{Calculus of Communicating Systems (CCS)}
+
+    \subsection{Calculus of Communicating Systems}
+
         \subsubsection{Background}
             \cite{pi-calculus-in-ccs}
 
+
         \subsubsection{Definitions}
 
+
         \subsubsection{Evaluation}
+
 
 
     \subsection{$\pi$-calculus}
+
         \subsubsection{Background}
             \cite{pi-calculus}
+            Similar to the $\lambda$-calculus as described in~\ref{ssubsec:lambda-calculus}, there exists the $\pi$-calculus for the study of concurrent computation.
+    
 
         \subsubsection{Definitions}
+            The $\pi$-calculus is constructed from the recursive definition of  an expression $P$:
+            \begin{equation*}
+                    P  \quad::=\quad  P|P  \quad|\quad  c(x).P  \quad|\quad  \bar{c}(x).P  \quad|\quad  vx.P  \quad|\quad  !P  \quad|\quad  0
+            \end{equation*}
+            where the expressions describe each of concurrency, waiting for input, providing output, name binding (similar to $\lambda x . P$), replication (which itself is $!P \coloneq P|!P$) and process termination respectively.
+
 
         \subsubsection{Examples}
 
+
         \subsubsection{Evaluation}
+            While it provides the expressiveness required for Turing-completeness, it does not lend itself to understandability nor clarity of the problem encoding when presented as a standalone expression.
+
 
 
     \subsection{Fusion Calculus}
+
         \subsubsection{Background}
             \cite{fusion-calculus}
 
+
         \subsubsection{Definitions}
 
+
         \subsubsection{Examples}
+
 
         \subsubsection{Evaluation}
 
 
+
     \subsection{Solos Calculus}
+
         \subsubsection{Background}
-            \cite{solo-calculus}
             \cite{acyclic-solos}
 
+
         \subsubsection{Definitions}
+            As defined by~\cite{solo-calculus}, the Solos calculus is constructed from \textit{solos} ranged over by $\alpha,\beta,\ldots$ and \textit{agents} ranged over by $P,Q,\ldots$ as such:
+                \begin{center}
+                    \begin{tabular}{ l l l }
+                        $\alpha ::=$    & $u\tilde{x}$          & (input) \\
+                                        & $\bar{u}\tilde{x}$    & (output) \\ \\
+                        $P ::=$         & $0$                   & (inaction) \\
+                                        & $\alpha$              & (solo) \\
+                                        & $Q | R$               & (composition) \\
+                                        & $(x)Q$                & (scope) \\
+                                        & $[x=y]Q$              & (match) \\
+                    \end{tabular}
+                \end{center}
+
 
         \subsubsection{Examples}
 
+
         \subsubsection{Solos Diagrams}
-            \cite{solo-diagrams}
+            This was further developed by~\cite{solo-diagrams} to provide a one-to-one correspondence between these  expressions and `diagram-like' objects. This provides a strong analog to real-world systems and an applicability to be used as a modelling tool for groups of communicating systems.
+
 
 
 
