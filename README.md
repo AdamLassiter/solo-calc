@@ -3,7 +3,7 @@ A Python/Tkinter implementation of the Solos calculus and of Solos diagrams.
 This forms the submission for CM30082 Dissertation, MComp Comp.Sci. w/ Maths. for Adam Lassiter, University of Bath, UK, 2017.
 
 ## Getting Started
-The project can be run from the src directory without any need for compiling/building.
+The project can be run from the [src/](src) directory without any need for compiling/building.
 
 ### Prerequisites
 * Python3
