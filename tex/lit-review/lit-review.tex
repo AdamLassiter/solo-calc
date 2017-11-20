@@ -12,6 +12,7 @@
 \date{October 2017}
 
 
+
 \begin{document}
 
 \maketitle
@@ -22,8 +23,6 @@
 
 \pagebreak
 
-% Fact impersonal / Opinion personal (footnote, italic)
-% Link between each section
 
 
 \section{Literature}
@@ -34,17 +33,21 @@
         While when it was first designed, it was not expected to be relevant to the newly-emerging field of theoretical Computer Science but instead Discrete Mathematics, the $\lambda$-calculus in fact forms a universal model of computation and can contain an encoding of any single-taped Turing machine.
         It has since become a popular formal system within which to study properties of computation.
         
-        \label{ssubsec:lambda-calculus}
-        \begin{definition}
-            The $\lambda$-calculus, as defined by~\cite{lambda-calculus}\footnote{While Church's original paper is still available, the source cited is found to be more relevant due to research in the subject area since the original paper's publication in the 1930s.} consists of an expression $M$ built from the following terms:
-            \begin{equation}
-                M  \quad::=\quad  a  \quad|\quad  (\lambda x . M)  \quad|\quad  (M N)
-            \end{equation}
-            where the expressions each describe a variable, an abstraction and an application of a function on an argument respectively.
+
+        \begin{definition}{(Syntax)\\}\label{lambda-calculus}
+            The $\lambda$-calculus, as defined by Church but here explained by~\cite{lambda-calculus}\footnote{While Church's original paper is still available, the source cited is found to be more relevant due to research in the subject area since the original paper's publication in the 1930s.} consists of an expression $M$ built from the following terms:
+            \begin{center}
+                \begin{tabular}{ l l l }
+                    $M  \quad \defeq \quad$ & $a$               & (variable) \\
+                                            & $\lambda x . M$   & (abstraction) \\
+                                            & $M N$             & (application)
+                \end{tabular}
+            \end{center}
         \end{definition}
         From this, any computable function can be constructed and computation is achieved through a series of operations on the expression.
 
-        \begin{definition}{($\alpha$-substitution)}
+
+        \begin{definition}{($\alpha$-substitution)\\}\label{lambda-alpha-relation}
             Unbound variables within an expression may be substituted for any given value.
             This is formally expressed as:
             \begin{align}
@@ -56,13 +59,13 @@
                 (\lambda x . M)[y := P] := &
                     \begin{cases}
                         \lambda x . M & \text{if } x = y \\
-                        \lambda x . (M[y := P]) & \text{if } x \neq y \text{ and } x \notin FV(P) \footnotemark
+                        \lambda x . (M[y := P]) & \text{if } x \neq y \text{ and } x \notin FV(P)~\footnotemark
                     \end{cases}
-            \end{align} \footnotetext{Here, $FV(P)$ is the set of all variables $x$ such that $x$ is free (unbound) in $P$.}
+            \end{align}\footnotetext{Here, $FV(P)$ is the set of all variables $x$ such that $x$ is free (unbound) in $P$.}
         \end{definition}
         This operation may be thought of as variable renaming as long as both old and new names are free in the expression in which they were substituted.
 
-        \begin{corollary*}{($\alpha$-equivalence)}
+        \begin{corollary*}{($\alpha$-equivalence)\\}
             The above definition of $\alpha$-substitution may be extended to give an equivalence relation on expressions, $\alpha$-equivalence, defined as:
             \begin{align}
                 y \notin FV(M) & \implies \lambda x . M \equiv_\alpha \lambda y \, (M[x := y]) \\
@@ -75,7 +78,8 @@
             \end{align}
         \end{corollary*}
 
-        \begin{definition}{($\beta$-reduction)}
+
+        \begin{definition}{($\beta$-reduction)\\}
             An expression may be simplified by applying one term to another through substitution of a term for a bound variable.
             This is formally expressed as:
             \begin{align}
@@ -90,13 +94,14 @@
         \end{definition}
         Often $\beta$-reduction requires several steps at once and as such these multiple $\beta$-reduction steps are abbreviated to $\rightarrow_\beta^*$.
 
-        \begin{corollary*}{($\beta$-equivalence)}
+        \begin{corollary*}{($\beta$-equivalence)\\}
             The above definition of $\beta$-reduction may be extended to give an equivalence relation on expressions, $beta$-equivalence, defined as:
             \begin{equation}
                 M \rightarrow_\beta^* P \text{ and } N \rightarrow_\beta^* P \implies M \equiv_\beta N
             \end{equation}
         \end{corollary*}
         
+
         \begin{example*}
             The above corollaries can be seen to have desirable properties when examining whether two expressions describe equivalent computation.
             \begin{align*}
@@ -109,9 +114,10 @@
             \end{align*}
         \end{example*}
 
+
         As computational calculus shares many parallels with modern functional programming, the following are encodings of some common functional concepts within the $\lambda$-calculus.
 
-        \begin{definition}{(List)}
+        \begin{definition}{(List)\\}
             Within the $\lambda$-calculus, lists may be encoded through the use of an arbitrary ${cons}$ function that takes a head element and a tail list and of a ${null}$ function that signifies the end of a list.
             The list is then constructed as a singly-linked list might be constructed in other languages:
             \begin{equation}
@@ -119,7 +125,8 @@
             \end{equation}
         \end{definition}
 
-        \begin{definition}{(Map)}
+
+        \begin{definition}{(Map)\\}
             The $map$ function takes two arguments --- a function $F$ that itself takes one argument and a list of suitable arguments $[x_1, \ldots, x_n]$ to this function.
             The output is then a list of the output of F when applied to each $x_1 \ldots x_n$.
             \begin{equation}
@@ -127,7 +134,9 @@
             \end{equation}
         \end{definition}
 
-            Below is an example for $n := 3$:
+
+        \begin{example*}
+            As follows is an example of the reductions on the ${map}$ function for a list of length $n := 3$:
             \begin{align*}
                 {map} \, F \, [x_1, x_2, x_3]
                       & \equiv_{\alpha} \lambda f . \lambda l . (\lambda c . (l \, (\lambda x . c \, (f \, x)))) \, F \, \lambda c . \lambda n . (c \, x_1 \, (c \, x_2 \, (c \, x_3 \, n))) \\
@@ -136,40 +145,169 @@
                       & \rightarrow_\beta^* \lambda c . (\lambda n . (c \, (F \, x_1) \, (c \, (F \, x_2) \, (c \, (F \, x_3) \, n)))) \\
                       & \equiv_{\alpha} [F \, x_1, F \, x_2, F \, x_3]
             \end{align*}
+        \end{example*}
 
         
-        \subsubsection{Evaluation}
-            While the $\lambda$-calculus has been successful and been studied by various areas of academia outside of Computer Science, it is limited in application by its fundamentally `single-process' model and struggles to describe multiple systems working and communicating together.
+        \begin{remarks}
+            While the $\lambda$-calculus has been successful and been studied by various areas of academia outside of Computer Science, it is limited in modern-day application by its fundamentally `single-process' model and struggles to describe multiple systems working and communicating together. 
+            While certain additional properties --- specifically the $Y$-combinator and simply-typed $\lambda$-calculus --- are not mentioned here, the calculus is defined from a few simple rules.
+            This simplicity allows implementations of $\lambda$-calculus interpreters to be relatively painless.\footnote{There exists an example of such an interpreter, available online at the time of writing, at \url{http://www.cburch.com/lambda/}}
+            \textit{In my opinion, the simplicity and expressiveness of the $\lambda$-calculus should be the standard to which other computational calculi are held.}\\
+
+            The ${map}$ example is particularly relevant to study within concurrent calculi as multiple large-scale systems follow a MapReduce programming model, as described by~\cite{mapreduce}, which utilises massive parallelism of large detacenters.
+            The model requires a ${map}$ function that applies a function to a key and set of values, similar to that described above, and a ${reduce}$ function that collects all values with matching keys.
+            The model has found to be useful for modelling many real-world tasks for performance reasons, but concurrent calculus may provide a simple case for study and understanding for any of these tasks which scales as necessary.
+
+        \end{remarks}
 
 
 
     \subsection{Calculus of Communicating Systems}
 
-        \subsubsection{Background}
-            \cite{pi-calculus-in-ccs}
+        The Calculus of Communicating Systems (or just CCS), described by Robin Milner in 1980 in a book of the same name, was one of the earlier\footnotemark{} process calculi.
+        \footnotetext{The reader is recommended to read `Communicating Sequential Processes' by~\cite{csp}, which may be thought of as the first such concurrent process calculus}
+        It was designed in the same vein as Church's $\lambda$-calculus, but with a focus on modelling concurrent systems.
+        Amongst the many differences, most notable are the ability for concurrency and waiting on input/output from (usually) internal and (potentially) external sources.
+        For reasons discussed in~\ref{subsec:pi-calculus}, it did not become as mainstream as the $\lambda$-calculus but did serve as an important basis for study in the subject distinct from Church's single-process model.
+
+        \begin{definition}{(Syntax)\\}
+            While use of syntax varies between sources, the core parts of CCS remain consistent across all of them, with some also including some extra syntax for clarity.
+            The definition of CCS here is taken from~\cite{pi-calculus-in-ccs}, in particular the \textbf{Plain CHOCS} syntax. A process $p$ is defined as:
+            \begin{center}
+                \begin{tabular}{ l l l }
+                    $p \quad \defeq \quad$  & $nil$                 & (inactive process) \\
+                                            & $x$                   & (variable) \\
+                                            & $a? \, x.p$           & (input) \\
+                                            & $a! \, p'.p$          & (output) \\
+                                            & $\tau.p$              & (silent) \\
+                                            & $p \, | \, p'$        & (parallel composition) \\
+                                            & $(a)p$                & (restriction) \\
+                                            & $p[a \rightarrow b]$  & (relabelling)~\footnotemark\\
+                                            & $p + p'$              & (choice)~\footnotemark\\
+                                            & $p!$                  & (replication)
+                \end{tabular}
+            \end{center}
+            \addtocounter{footnote}{-1} \footnotetext{There may be multiple relabellings at once, so this is often written $p[S]$ where the function $S$ has $dom(S) = \{a\}\, ran(S) = \{b\}$}
+            \stepcounter{footnote} \footnotetext{The choice here of whether to follow the left or right side is non-deterministic. This leads to what will later be described as the Tea/Coffee Problem} % TODO: Ref/Link me!
+        \end{definition}
+        When comparing to the $\lambda$-calculus from Definition~\ref{lambda-calculus}, certain parallels can be seen.
+        Notable additions are the action operators (input, output and silent) and the composition operators (parallel composition and choice). \\
 
 
-        \subsubsection{Definitions}
+        Due to the increased amount of syntax, CCS as many more rules and semantics for computation than the $\lambda$-calculus.
+        Here $\xrightarrow{\lambda}$ describes reduction through taking an arbitrary action $\lambda$. \\
+
+        \begin{definition}{(Basic Semantics)\\}
+            The first set of rules, pertaining to just the actions, is simply:
+            \begin{align}
+                \tau.p & \xrightarrow{\tau} p \\
+                a?x.p  & \xrightarrow{a? x} p \\
+                a!p'.p & \xrightarrow{a!_{\emptyset} p'} p
+            \end{align}
+        \end{definition}
+        That is, a process of action $\lambda$ and subprocess $p$ written $\lambda.p$ is reduced to just $p$ once the action $\lambda$ is taken.
+        Note also that the output operation includes a set, here it is the empty set $\emptyset$, which describes the bound names for the output process $p'$. \\
 
 
-        \subsubsection{Evaluation}
+        \begin{definition}{(General Actions)\\}
+            The next set of rules, describing a general action $\lambda$, is:
+            \begin{align}
+                p \xrightarrow{\lambda} p' \implies
+                \begin{cases}
+                    p + q \xrightarrow{\lambda} p' \\
+                    p \, | \, q \xrightarrow{\lambda} p' \, | \, q &\text{if } bn(\lambda) \cap fn(q) = \emptyset \\
+                \end{cases}
+            \end{align}
+        \end{definition}
+        This describes how the composition operators reduce after actions are taken.
+        The only catch here is the condition that the action $\lambda$ cannot bind any of the free names in $q$. \\
+
+
+        \begin{definition}{(Silent Action)\\}
+            The first special case of the input actions is the silent operation.
+            These rules are simply:
+            \begin{align}
+                p \xrightarrow{\tau} p' \implies
+                \begin{cases}
+                    (c)p \xrightarrow{\tau} (c)p' \\
+                    p[S] \xrightarrow{\tau} p'[S] \\
+                \end{cases}
+            \end{align}
+        \end{definition}
+        This can be thought of as similar to $\alpha$-equivalence from the Corollary to Definition~\ref{lambda-alpha-relation}. \\
+
+
+        \begin{definition}{(Input Action)\\}
+            The input action then has the special rules:           
+            \begin{align}
+                p \xrightarrow{a?x} p' \implies
+                \begin{cases}
+                    (c)p \xrightarrow{a?x} (c)p' & \text{if } a \neq c \\
+                    p[S] \xrightarrow{S(a)?x} p'[S] \label{eqn:ccs-rename-then-action}\\
+                \end{cases}
+            \end{align}
+        \end{definition}
+        That is, any restrictions or relabelling in $p$ is carried through to $p'$ after the action is taken as long as the action does not input on the restriction (first case).
+        Similarly, the action is equivalent if, after renaming, the input variable $a$ is renamed before the input action is taken. \\
+
+
+        \begin{definition}{(Output Action)\\}
+            Then finally, the output operation has the rules:
+            \begin{align}
+                p \xrightarrow{a!_{B} p''} p' \implies
+                \begin{cases}
+                    p \xrightarrow{a!_{B'} p''} p'                  & \text{if } B \cap (fn(p') \cup fn(p'')) = B' \cap (fn(p') \cup fn(p'')) \\
+                    (c)p \xrightarrow{a!_{B \cup \{c\}} p''} (c)p'  & \text{if } a \neq c \text{, } c \in fn(p'') \text{ and } c \notin B \\
+                    (c)p \xrightarrow{a!_{B} p''} (c)p'             & \text{if } a \neq c \text{ and } c \notin fn(p'') \\
+                    p[S] \xrightarrow{S(a)!_{B} p''} p'[S]          & \text{if } B \cap (dom(S) \cup ran(S)) = \emptyset \\
+                \end{cases}
+            \end{align}
+        \end{definition}
+        The first of these states that the computation is equivalent for different $B$ and $B'$ as long as the free names of $p'$ and $p''$ that are found in $B$ are exactly those found in $B'$.
+        The second and third describe carrying over restriction into $p''$ by including $c$ in the bound names $B$ as long as there isn't an obvious name collision, with each describing what to do depending on whether $c$ is free in $p''$.
+        Finally, the fourth states much the same, but as to renaming rather than restriction, in combination with Equation~\ref{eqn:ccs-rename-then-action} --- computation is equivalent under renaming if $a$ is renamed prior to performing the action and there are no name collisions between $B$ and $S$. \\
+
+
+        \begin{definition}{(Concurrent Inputs and Outputs)\\}
+            The final semantic rule describes the communication of two concurrent processes:
+            \begin{align}
+                \begin{rcases}
+                    p \xrightarrow{a!_{B} p''} p' \\
+                    q \xrightarrow{a? x} q' \\
+                \end{rcases}
+                \implies p \, | \, q \xrightarrow{\tau} (B)(p' \, | \, q'\{p'' / x\}) \quad\text{if } fn(q) \cap B = \emptyset
+            \end{align}
+            If one process $q \xrightarrow{\lambda} q'$ makes an input action $\lambda \defeq a?x$ and another process $p \xrightarrow{\mu} p'$ makes an output action $\mu \defeq a!_{B} p''$ then the parallel computation $p \, | \, q$ is equivalent to:
+            \begin{itemize}
+                \item Restrict in $B$
+                \item Rename p'' to x
+                \item Compute $p' | q'$
+            \end{itemize}
+            This is assuming, of course, there are no free names of $q$ that appear in B.
+        \end{definition}
 
 
 
-    \subsection{$\pi$-calculus}
+    % join pi-calc and CCS %
+    \subsection{$\pi$-calculus} \label{subsec:pi-calculus}
 
         \subsubsection{Background}
             \cite{pi-calculus}
-            Similar to the $\lambda$-calculus as described in~\ref{ssubsec:lambda-calculus}, there exists the $\pi$-calculus for the study of concurrent computation.
+            Similar to the $\lambda$-calculus as described in~\ref{lambda-calculus}, there exists the $\pi$-calculus for the study of concurrent computation.
     
 
         \subsubsection{Definitions}
-            The $\pi$-calculus is constructed from the recursive definition of  an expression $P$:
-            \begin{equation*}
-                    P  \quad::=\quad  P|P  \quad|\quad  c(x).P  \quad|\quad  \bar{c}(x).P  \quad|\quad  vx.P  \quad|\quad  !P  \quad|\quad  0
-            \end{equation*}
-            where the expressions describe each of concurrency, waiting for input, providing output, name binding (similar to $\lambda x . P$), replication (which itself is $!P \coloneq P|!P$) and process termination respectively.
-
+            The $\pi$-calculus is constructed from the recursive definition of an expression $P$:
+            \begin{center} % revise from ccs document? %
+                \begin{tabular}{ l l l }
+                    $P \quad \defeq$    & $P | P$           & (concurrency) \\
+                                        & $ c(x).P$         & (input) \\
+                                        & $\bar{c}(x).P$    & (output) \\
+                                        & $vx.P$            & (name binding)~\footnotemark\\
+                                        & $P!$              & (replication)~\footnotemark\\
+                                        & $0$               & (null process)
+                \end{tabular}
+            \end{center} \footnotetext{Name-binding in the $\pi$-calculus is similar to $\lambda x . P$ within the $\lambda$-calculus.} \footnotetext{Replication is defined in theory as $P! \defeq P \, | \, P!$.}
 
         \subsubsection{Examples}
 
@@ -205,13 +343,13 @@
             As defined by~\cite{solo-calculus}, the Solos calculus is constructed from \textit{solos} ranged over by $\alpha,\beta,\ldots$ and \textit{agents} ranged over by $P,Q,\ldots$ as such:
                 \begin{center}
                     \begin{tabular}{ l l l }
-                        $\alpha ::=$    & $u\tilde{x}$          & (input) \\
-                                        & $\bar{u}\tilde{x}$    & (output) \\ \\
-                        $P ::=$         & $0$                   & (inaction) \\
-                                        & $\alpha$              & (solo) \\
-                                        & $Q | R$               & (composition) \\
-                                        & $(x)Q$                & (scope) \\
-                                        & $[x=y]Q$              & (match) \\
+                        $\alpha \quad \defeq$   & $u\tilde{x}$          & (input) \\
+                                                & $\bar{u}\tilde{x}$    & (output) \\ \\
+                        $P \quad \defeq$        & $0$                   & (inaction) \\
+                                                & $\alpha$              & (solo) \\
+                                                & $Q | R$               & (composition) \\
+                                                & $(x)Q$                & (scope) \\
+                                                & $[x=y]Q$              & (match) \\
                     \end{tabular}
                 \end{center}
 

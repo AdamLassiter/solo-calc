@@ -10,12 +10,12 @@
 \usepackage{amssymb}
 \usepackage{scrextend}
 \usepackage{stackengine}	
-\usepackage[symbol]{footmisc}
+\usepackage[symbol, perpage]{footmisc}
 \hypersetup{linktoc=all}
 
 % natbib source
 \bibliographystyle{../custom}
-% no 'References' title
+% no 'References' title in bibliography
 \renewcommand{\bibsection}{}
 
 % pgfgantt weeks
@@ -30,14 +30,19 @@
 \setcounter{myWeekNum}{44}
 \ganttset{calendar week text={\myWeek{}}}
 
+% no paragraph indent
 \setlength{\parindent}{0pt}
 
+% delta-equals (unused atm)
 \def\deltaeq{\mathrel{\ensurestackMath{\stackon[1pt]{=}{\scriptstyle\Delta}}}}
+\def\defeq{::=}
 
+% theorems
 \theoremstyle{definition}
-\newtheorem{definition}{Definition}
+\newtheorem{definition}{Definition}[subsection]
 \newtheorem*{definition*}{Definition}
 \newtheorem{example}{Example}
 \newtheorem*{example*}{Example}
 \newtheorem{corollary}{Corollary}
 \newtheorem*{corollary*}{Corollary}
+\newtheorem*{remarks}{Remarks}
