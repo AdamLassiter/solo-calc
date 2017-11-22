@@ -1,0 +1,29 @@
+% join pi-calc and CCS %
+\subsection{$\pi$-calculus}\label{subsec:pi-calculus}
+
+    \subsubsection{Background}
+        \cite{pi-calculus}
+        Similar to the $\lambda$-calculus as described in~\ref{ssec:lambda-calculus}, there exists the $\pi$-calculus for the study of concurrent computation.
+
+
+    \subsubsection{Definitions}
+        The $\pi$-calculus is constructed from the recursive definition of an expression $P$:
+        \begin{center} % revise from ccs document? %
+            \begin{tabular}{ l l l }
+                $P \quad \defeq$    & $Q \, | \, R$     & (concurrency) \\
+                                    & $ c(x).Q$         & (input) \\
+                                    & $\bar{c}(x).Q$    & (output) \\
+                                    & $vx.Q$            & (name binding)~\footnotemark\\
+                                    & $Q!$              & (replication)~\footnotemark\\
+                                    & $0$               & (null process) \\
+            \end{tabular}
+        \end{center}
+        \addtocounter{footnote}{-1}\footnotetext{Name-binding in the $\pi$-calculus is similar to $\lambda x . P$ within the $\lambda$-calculus.}
+        \stepcounter{footnote}\footnotetext{Replication is defined in theory as $P! \defeq{} P \, | \, P!$. However, this causes problems in computation as to how much to replicate and is in fact computed differently.}
+
+    \subsubsection{Examples}
+
+
+    \subsubsection{Evaluation}
+        While it provides the expressiveness required for Turing-completeness, it does not lend itself to understandability nor clarity of the problem encoding when presented as a standalone expression.
+

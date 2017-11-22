@@ -1,0 +1,35 @@
+\subsection{Solos Calculus}
+    
+    Developed by Cosimo Laneve and Bj{\"o}rn Victor in the early 2000s, the Solos calculus aims to be an improvement of the Fusion calculus.
+    As such, there exists an encoding of the Fusion calculus within the Solos calculus (and hence an encoding of the $\pi$-calculus).
+    The name comes from the strong distinction between the components of the calculus: \textit{solos} and \textit{agents}.
+    These are roughly analogous to input/output actions and a calculus syntax similar to the $\lambda$-calculus.
+    Through some clever design choices, the Solos calculus is found to have some interesting properties over other process calculi.
+
+    \begin{definition}{(Syntax)\\}
+        As defined by~\cite{solo-calculus}, the Solos calculus is constructed from \textit{solos} ranged over by $\alpha, \beta \ldots$ and \textit{agents} ranged over by $P, Q \ldots$ as such:
+        \begin{center}
+            \begin{tabular}{ l l l }
+                $\alpha \quad \defeq$   & $u\tilde{x}$          & (input) \\
+                                        & $\bar{u}\tilde{x}$    & (output) \\ \\
+                $P \quad \defeq$        & $0$                   & (inaction) \\
+                                        & $\alpha$              & (solo) \\
+                                        & $Q \, | \, R$         & (composition) \\
+                                        & $(x)Q$                & (scope) \\
+                                        & $[x=y]Q$              & (match) \\
+            \end{tabular}
+        \end{center}
+    \end{definition}
+
+
+    %Examples
+ 
+    \subsubsection{Solos Diagrams}
+        The Solos calculus was further developed by~\cite{solo-diagrams} to provide a one-to-one correspondence between these  expressions and `diagram-like' objects.
+        This provides a strong analog to real-world systems and an applicability to be used as a modelling tool for groups of communicating systems.
+
+    \begin{remarks} 
+        For further reading,~\cite{acyclic-solos} presents in great detail the topics of the $\pi$ and Solos calculus, Solo diagrams and furthermore Differential Interaction Nets.
+    \end{remarks}
+
+
