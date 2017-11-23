@@ -1,11 +1,12 @@
-\subsection{$\lambda$-calculus}\label{ssec:lambda-calculus}
+\subsection{\texorpdfstring{$\lambda$-}{Lambda }calculus}\label{ssec:lambda-calculus}
 
     Developed by Alonzo Church in the 1930s, the $\lambda$-calculus was the first such computational calculus and describes a mathematical representation of a computable function.
     While when it was first designed, it was not expected to be relevant to the newly-emerging field of theoretical Computer Science but instead Discrete Mathematics, the $\lambda$-calculus in fact forms a universal model of computation and can contain an encoding of any single-taped Turing machine.
     It has since become a popular formal system within which to study properties of computation.
     
 
-    \begin{definition}{(Syntax)\\}\label{lambda-calculus-syntax}
+    \begin{definition}{(Syntax)\\}
+        \label{lambda-calculus-syntax}
         The $\lambda$-calculus, as defined by Church but here explained by~\cite{lambda-calculus}\footnote{While Church's original paper is still available, the source cited is found to be more relevant due to research in the subject area since the original paper's publication in the 1930s.} consists of an expression $M$ built from the following terms:
         \begin{center}
             \begin{tabular}{ l l l }
@@ -18,7 +19,8 @@
     From this, any computable function can be constructed and computation is achieved through a series of operations on the expression.
 
 
-    \begin{definition}{($\alpha$-substitution)\\}\label{lambda-alpha-relation}
+    \begin{definition}{($\alpha$-substitution)\\}
+        \label{lambda-alpha-relation}
         Unbound variables within an expression may be substituted for any given value.
         This is formally expressed as:
         \begin{align}
