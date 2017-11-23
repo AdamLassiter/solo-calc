@@ -73,8 +73,23 @@
     isbn = "1-281-03639-0",
 }
 
-@article{
+
+@inproceedings{
     fusion-calculus,
+    issn = "1043-6871",
+    abstract = "We present the fusion calculus as a significant step towards a canonical calculus of concurrency. It simplifies and extends the /spl pi/-calculus. The fusion calculus contains the polyadic /spl pi/-calculus as a proper subcalculus and thus inherits all its expressive power. The gain is that fusion contains actions akin to updating a shared state, and a scoping construct for bounding their effects. Therefore it is easier to represent computational models such as concurrent constraints formalisms. It is also easy to represent the so called strong reduction strategies in the /spl lambda/-calculus, involving reduction under abstraction. In the /spl lambda/-calculus these tasks require elaborate encodings. Our results on the fusion calculus in this paper are the following. We give a structured operational semantics in the traditional style. The novelty lies in a new kind of action, fusion actions for emulating updates of a shared state. We prove that the calculus contains the /spl pi/-calculus as a subcalculus. We define and motivate the bisimulation equivalence and prove a simple characterization of its induced congruence, which is given two versions of a complete axiomatization for finite terms. The expressive power of the calculus is demonstrated by giving a straight-forward encoding of the strong lazy /spl lambda/-calculus, which admits reduction under /spl lambda/ abstraction.",
+    journal = "Logic in Computer Science, 1998. Proceedings. Thirteenth Annual IEEE Symposium on",
+    pages = "176--185",
+    publisher = "IEEE Publishing",
+    isbn = "0-8186-8506-9",
+    year = "1998",
+    title = "The fusion calculus: expressiveness and symmetry in mobile processes",
+    author = "Parrow, J. and Victor, B.",
+}
+
+
+@article{
+    catgorical-fusion-calculus,
     issn = "1571-0661",
     abstract = "We provide a categorical presentation of the Fusion calculus. First we give Working in a suitable category of presheaves, we describe the syntax as initial algebra of a signature endofunctor, and the semantics as coalgebras of a “behaviour” endofunctor. To this end, we first give a a new, congruence-free presentation of the Fusion calculus; then, the behaviour endofunctor is constructed by adding in a systematic way a notion of “state” to the intuitive endofunctor induced by the LTS. Coalgebras can be given a concrete presentation as “stateful indexed labelled transition systems”; the bisimilarity over these systems is a congruence, and corresponds to hyperequivalence. Then, we model the labelled transition system of Fusion by abstract categorical rules. As a consequence, we get a semantics for the Fusion calculus which is both compositional and fully abstract: two processes have the same semantics iff they are bisimilar, that is, hyperequivalent.",
     journal = "Electronic Notes in Theoretical Computer Science",
