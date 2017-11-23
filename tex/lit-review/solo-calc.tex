@@ -30,7 +30,7 @@
 
 
     \begin{definition}{(Match Operator)\\}
-        The match operator $[x \, = \, y] \, P$ makes P behave as if $x$ and $y$ are the same name.
+        The match operator $[x \, = \, y] \, P$ computes $P$ if $x$ and $y$ are the same name, otherwise computes \textbf{0}.
         These match operators are iterated over here by $M, N$, with sequences of match operators iterated over by $\tilde{M}, \tilde{N}$.
         Each name occurring in $M$ is a \textit{labelled node} of $M$.
     \end{definition}
@@ -39,7 +39,7 @@
     \begin{definition}{(Structural Congruence)\\}
         The structural congruence $\equiv$ is the least congruence relation satisfying $\alpha$-equivalence, associativity, commutativity, 0 identity and the following scope laws:
         \begin{align}
-            (x) \, 0            & \equiv 0 \\
+            (x) \, \textbf{0}   & \equiv \textbf{0} \\
             (x) \, (y) \, P     & \equiv (y) \, (x) \, P \\
             [x=x] \, P          & \equiv P \\
             (x) \, M P          & \equiv M \, (x)P \quad \text{if $x \notin$ labelled nodes of M} \\
