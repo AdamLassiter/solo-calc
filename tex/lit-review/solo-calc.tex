@@ -60,6 +60,7 @@
 
     \begin{remark*}
         There exists an encoding of the Fusion calculus within the solo calculus.
+        This can most easily be seen as an encoding of the choice-free Fusion calculus as a combination of the above syntax and semantics of the solo calculus and also the prefix operator $\alpha \, . \, P$\footnote{For further details,~\cite{solo-calculus} discuss this implementation in Section 3}.
         Hence there exists an encoding of the $\pi$-calculus also, complete with the same style of guarded input/output communication.
     \end{remark*}
 
@@ -156,6 +157,73 @@
     \end{definition}
     From here, we can convert solo calculus to diagrams, where composition is intuitively just including two separate diagrams together and scope is simply any connected nodes labelled by $\ell$.
     There are then four required reduction cases (edge-edge, edge-box, box-box and box internals) which can be deduced from the definition of the calculus.
+
+
+    \begin{definition}{(Diagram Reduction)\\}
+        Let $G, G_1, G_2 \ldots$ be arbitrary graphs, $M, M'$ arbitrary box multisets, $\alpha \defeq \langle a, a_1 \ldots a_k \rangle_i$, $\beta \defeq \langle a, a_1' \ldots a_k' \rangle_o$, $\sigma \defeq a_i \mapsto a_i'$, $\rho$ a arbitrary but fresh relabelling and $G\sigma$ shorthand for $G[\sigma]$ the application of the renaming $\sigma$ on the edges of G.
+        $\alpha$ and $\beta$ need not be fixed to input and output respectively, but must be opposite polarity.
+        Then, the following reductions may be made:
+        \begin{align}
+            (G \cup \{\alpha, \beta\}, M, \ell)                                                                                     & \rightarrow (G\sigma, M\sigma, \ell') \\
+            (G_1 \cup \{\alpha\}, M \defeq \langle G_2 \cup \{\beta\}, S \rangle, \ell)                                             & \rightarrow ((G_1 \cup G_2\rho)\sigma, M\sigma, \ell') \\
+            (G, M \defeq \{\langle \{ \alpha \} \cup G_1, S_1 \rangle,\langle \{ \beta \} \cup G_2, S_2 \rangle\} \cup M', \ell)    & \rightarrow ((G \cup G_1\rho \cup G_2\rho)\sigma, M\sigma, \ell') \\
+            (G, M \defeq \langle \{ \alpha, \beta \} \cup G_1, S \rangle \cup M', \ell)                                             & \rightarrow ((G \cup G_1\rho)\sigma, M\sigma, \ell')
+        \end{align}
+        where each represents reduction of an edge-edge, edge-box, box-box and of box internals respectively.
+    \end{definition}
+
+
+    \begin{example*}
+        \begin{figure}[H]
+            \centering
+            \begin{subfigure}{0.4\linewidth}
+                \centering
+                \begin{tikzpicture}[transform shape, every node/.style={circle, fill=black!100, inner sep=0.05cm}]
+                    \coordinate[anchor=center](nw);
+                    \coordinate[below=3cm of nw](sw);
+                    \coordinate[right=3cm of nw](ne);
+                    \coordinate[below right=3cm and 3cm of nw](se);
+                    \draw[-] (nw) -- (ne) -- (se) -- (sw) -- (nw);
+                    \node[right=1.5cm of sw, label=below left:{$x$}](x){};
+                    \coordinate[below=1cm of x](xba){};
+                    \coordinate[above=1cm of x](xaa){};
+                    \node[above left=1cm of xaa](v){};
+                    \node[above right=1cm of xaa](w){};
+                    \node[below left=1cm of xba, label=left:{$y$}](y){};
+                    \node[below right=1cm of xba, label=right:{$z$}](z){};
+                    \draw[-{<[scale=2]}] (xaa) -- (x);
+                    \draw[-{>[scale=2]}] (xba) -- (x);
+                    \draw[-{>[scale=2]}] (w) to [out=140, in=40] (v);
+                    \draw[-] (w) -- (xaa) -- (v);
+                    \draw[-] (y) -- (xba) -- (z);
+                \end{tikzpicture}
+                \caption*{$\bar{x}\, y \ \, | \, !(uv)(x \, uv | \bar{u} \, v)$}
+            \end{subfigure}
+            $\longrightarrow$
+            \begin{subfigure}{0.4\linewidth}
+                \centering
+                \begin{tikzpicture}[transform shape, every node/.style={circle, fill=black!100, inner sep=0.05cm}]
+                    \coordinate[anchor=center](nw);
+                    \coordinate[below=3cm of nw](sw);
+                    \coordinate[right=3cm of nw](ne);
+                    \coordinate[below right=3cm and 3cm of nw](se);
+                    \draw[-] (nw) -- (ne) -- (se) -- (sw) -- (nw);
+                    \node[right=1.5cm of sw, label=below left:{$x$}](x){};
+                    \coordinate[below=1cm of x](xba){};
+                    \coordinate[above=1cm of x](xaa){};
+                    \node[above left=1cm of xaa](v){};
+                    \node[above right=1cm of xaa](w){};
+                    \node[below left=1cm of xba, label=left:{$y$}](y){};
+                    \node[below right=1cm of xba, label=right:{$z$}](z){};
+                    \draw[-{<[scale=2]}] (xaa) -- (x);
+                    \draw[-{>[scale=2]}] (w) to [out=140, in=40] (v);
+                    \draw[-] (w) -- (xaa) -- (v);
+                    \draw[-{>[scale=2]}] (z) -- (y);
+                \end{tikzpicture}
+                \caption*{$\bar{y} \, z \, | \, !(uv)(x \, u v \, | \, \bar{u} \, v)$}
+            \end{subfigure} 
+        \end{figure}
+    \end{example*}
 
 
     \begin{remarks}
