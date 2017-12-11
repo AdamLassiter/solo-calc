@@ -1,12 +1,12 @@
 # Dance of the Solos
-A Python/Tkinter implementation of the solo calculus and of solo diagrams.  
+A Python/D3.js implementation of the solo calculus and of solo diagrams.  
 This forms the submission for CM30082 Dissertation, MComp Comp.Sci. w/ Maths. for Adam Lassiter, University of Bath, UK, 2017-18.
 
 ## Getting Started
 The project can be run from the [src/](src) directory without any need for compiling/building.
 
 ### Prerequisites
-* Python3
+* Python3, web-browser supporting D3.js
 
 ## Contributing
 Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on code of conduct, and the process for submitting pull requests.
