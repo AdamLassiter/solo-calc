@@ -1,4 +1,5 @@
 #! /usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 from functools import reduce
 
@@ -11,8 +12,10 @@ Expressions are immutable due to problems with adding mutable items to a set:
 
 Reductions are performed recursively:
     Each agent will first reduce each of its sub-agents.
-    Then reduction rules are applied where applicable.
-    Notably this includes the special case of nesting an operator within itself.
+    Then reduction rules are applied where applicable - this includes:
+        * Grouping nested operators of the same type
+        * Extracting scopes where applicable ((x)P | Q) -> (x)(P | Q) if x ∉ fn(Q)
+        * TODO: (Delayed) expansion of replication operator
 
 Fusions are performed as follows:
     Output x on u, input u onto y -> Define/rename y := x
