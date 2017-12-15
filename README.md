@@ -6,7 +6,8 @@ This forms the submission for CM30082 Dissertation, MComp Comp.Sci. w/ Maths. fo
 The project can be run from the [src/](src) directory without any need for compiling/building.
 
 ### Prerequisites
-* Python3, web-browser supporting D3.js
+* Python 3.6
+* Webbrowser with d3.js support
 
 ## Contributing
 Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on code of conduct, and the process for submitting pull requests.

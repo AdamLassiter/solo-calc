@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 
 from functools import reduce
+from random import choice
+
+from graph import Graph
 
 
 # NOTE: Notes for later
@@ -19,18 +22,16 @@ Reductions are performed recursively:
         * Extracting scopes where applicable ((x)P | Q) -> (x)(P | Q) if x ∉ fn(Q)
         * TODO: (Delayed) expansion of replication operator
             See paper implementation
-        * TODO: Match/replace operator
 
 Fusions are performed as follows:
     Output x on u, input u onto y -> Define/rename x := y
     (x)(̅u x | u y | P) -> P{y / x}
 
-Input/Output must meet side-conditions:
-    range/domain of sigma-rename
+Renaming functions σ are found as follows:
+    Construct graph(s) G, H ... by treating all names as nodes and the pairs x̃, ỹ as edges
+    Check there is at most one free node fn per connected graph G
+    Define σ[bn] := fn ∀ bn ϵ G
 """
-
-# You know what happens when you assert...
-__debug__ = True
 
 
 class Agent(object):
@@ -69,9 +70,10 @@ class Name(object):
     
     def fuse_into(self, other):
         assert isinstance(other, type(self))
-        self.fusions |= {other}
-        other.fusions |= {self}
-        self.name = other.name
+        fusions = self.fusions | other.fusions
+        for name in fusions:
+            name.fusions = fusions - {name}
+            name.name = other.name
 
 
 class Solo(Agent):
@@ -126,10 +128,10 @@ class Inaction(Agent):
 
 class Composition(Agent):
 
-    def __init__(self, *agents) -> None:
+    def __init__(self, agents: set) -> None:
         for agent in agents:
             assert isinstance(agent, Agent)
-        self.agents = set(agents)
+        self.agents = agents
 
     def __str__(self) -> str:
         return '(%s)' % (' | '.join(map(str, self.agents)))
@@ -150,11 +152,13 @@ class Composition(Agent):
             if not sagent.bindings:
                 agents -= {sagent}
                 agents |= {sagent.agent}
-        return Scope(rescope, type(self)(*agents)) if rescope else type(self)(*agents)
+        return Scope(rescope, type(self)(agents)) if rescope else type(self)(agents)
 
     @staticmethod
     def attrs(s: set, attr: str) -> set:
-        return set(reduce(frozenset.union, map(lambda x: frozenset(getattr(x, attr)), s)))
+        return set(reduce(set.union,
+                          map(lambda x: frozenset(getattr(x, attr)), s),
+                          set()))
 
     @property
     def names(self) -> set:
@@ -177,36 +181,21 @@ class Scope(Agent):
         return '(%s)%s' % (''.join(map(str, self.bindings)), self.agent)
 
     def construct_sigma(self, objects_pairs: zip) -> dict:
+        # NOTE: Graph partitioning > naive pairwise cases for intersection
+        graph = Graph()
         sigma = {}
-        freedom = [set() for _ in range(3)]
-        boundness = [set() for _ in range(3)]
         for pair in objects_pairs:
-            intersect = set(pair) & self.free_names
-            freedom[len(intersect)] |= (intersect, set(pair) - intersect)
-        # NOTE: Both objects are free names => fail
-        assert freedom[2] == {}
-        # NOTE: One object free, one bound => rename bound name
-        #       σ[y] := x
-        for free, bound in freedom[1]:
-            sigma[bound[0]] = free[0]
-        # NOTE: Both objects bound => depends upon sigma
-        for _, pair in freedom[0]:
-            intersect = pair & set(sigma.keys())
-            boundness[len(intersect)] |= (intersect, pair - intersect)
-        # NOTE: Both bound objects are already renamed => fail
-        assert boundness[2] == {}
-        # NOTE: One bound object is renamed, one just bound =>
-        #       rename just bound name to the renamed's new name
-        #       σ[y] := σ[x]
-        for renamed, bound in boundness[1]:
-            # FIXME: This may still trip
-            assert bound[0] not in sigma.keys()
-            sigma[bound[0]] = sigma[renamed[0]]
-        # NOTE: Both bound objects not yet renamed => fresh name?
-        # TODO: Implement fresh names
-        for _, pair in boundness[0]:
-            pass
-        # TODO: Assert things about sigma
+            graph.insert_edge(*pair)
+        partitions = graph.partitions()
+        for partition in partitions:
+            intersect = self.free_names & partition
+            assert len(intersect) <= 1
+            if len(intersect) == 0:
+                free_name = choice(partition)
+            else:
+                free_name = intersect.pop()
+            for bound_name in set(partition) - {free_name}:
+                sigma[bound_name] = free_name
         return sigma
 
     def reduce(self):
@@ -223,9 +212,8 @@ class Scope(Agent):
                     if iagent.subject == oagent.subject \
                     and iagent.arity == oagent.arity:
                         sigma = self.construct_sigma(zip(iagent.objects, oagent.objects))
-                        # TODO: Make use of sigma
-                        agent.agents -= {iagent}
-                        agent.agents -= {oagent}
+                        agent.agents -= {iagent, oagent}
+                        return Match(type(self)(bindings, agent), sigma)
         return type(self)(bindings, agent)
 
     @property
@@ -244,18 +232,22 @@ class Match(Agent):
             assert isinstance(key, Name) and isinstance(value, Name)
             # NOTE: Here, {a: c, b: c} renames both a and b to c
             assert key in agent.bound_names
-        assert isinstance(self.agent, Scope)
+        assert isinstance(agent, Scope)
         self.agent = agent
         self.matches = matches
 
     def __str__(self) -> str:
-        return '%s{%s}' % (self.agent, ', '.join(['%s/%s' % kv
-                                                  for kv in self.matches.items()]))
+        return '%s{%s}' % (self.agent, ', '.join(['%s/%s' % (value, key)
+                                                  for key, value in self.matches.items()]))
 
     def reduce(self) -> Agent:
-        for key, value in matches.items():
+        agent = self.agent
+        agent.bindings -= set(self.matches.keys())
+        if agent.bindings == set():
+            agent = agent.agent
+        for key, value in self.matches.items():
             key.fuse_into(value)
-        return self.agent.agent
+        return agent.reduce()
 
     @property
     def names(self) -> set:
@@ -272,13 +264,14 @@ class Replication(Agent):
         self.agent = agent
 
     def __str__(self) -> str:
-        return '!%s' % self.agent
+        return '!(%s)' % self.agent
 
     def reduce(self):
         agent = self.agent.reduce()
         # NOTE: !(!(P)) == !(P)
         if isinstance(agent, Replication):
             agent = agent.agent
+        # TODO: Replication operator
         return type(self)(agent)
     
     @property
@@ -291,12 +284,11 @@ class Replication(Agent):
 
 
 if __name__ == '__main__':
-    x, y, z, s = Name('x'), Name('y'), Name('z'), Name('s')
-    expr = Replication(Composition(Scope({s}, Input(z, (y,))),
-                                   Output(x, (y,)),
-                                   Output(z, (x,))))
-
+    w, x, y, z, u = Name('w'), Name('x'), Name('y'), Name('z'), Name('u')
+    expr = Scope({w, x}, Composition({Input(u, (x, z)),
+                                      Output(u, (y, w)),
+                                      Replication(Input(u, (w, x, y, z)))}))
     while True:
         print(expr)
-        input()
+        input('-> ?')
         expr = expr.reduce()
