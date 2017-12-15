@@ -13,7 +13,7 @@ class Graph(dict):
     def span(self, node) -> set:
         assert node in self.keys()
         frontier, span = self[node], {node}
-        while frontier != set():
+        while frontier:
             span |= frontier
             next_frontier = set()
             for node in frontier:
@@ -24,7 +24,7 @@ class Graph(dict):
     def partitions(self) -> set:
         nodes = set(self.keys())
         partitions = set()
-        while nodes != set():
+        while nodes:
             span = frozenset(self.span(nodes.pop()))
             partitions |= {span}
             nodes -= span

@@ -213,6 +213,10 @@ class Scope(Agent):
                     and iagent.arity == oagent.arity:
                         sigma = self.construct_sigma(zip(iagent.objects, oagent.objects))
                         agent.agents -= {iagent, oagent}
+                        if not agent.agents:
+                            agent.agents |= {Inaction()}
+                        if len(agent.agents) == 1:
+                            agent = agent.agents.pop()
                         return Match(type(self)(bindings, agent), sigma)
         return type(self)(bindings, agent)
 
@@ -243,7 +247,7 @@ class Match(Agent):
     def reduce(self) -> Agent:
         agent = self.agent
         agent.bindings -= set(self.matches.keys())
-        if agent.bindings == set():
+        if not agent.bindings:
             agent = agent.agent
         for key, value in self.matches.items():
             key.fuse_into(value)
@@ -290,5 +294,5 @@ if __name__ == '__main__':
                                       Replication(Input(u, (w, x, y, z)))}))
     while True:
         print(expr)
-        input('-> ?')
+        input()
         expr = expr.reduce()
