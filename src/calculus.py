@@ -1,7 +1,6 @@
 #! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from copy import copy, deepcopy
 from functools import reduce
 from random import choice
 
@@ -33,6 +32,10 @@ Renaming functions σ are found as follows:
     Check there is at most one free node fn per connected graph G
     Define σ[bn] := fn ∀ bn ϵ G
 """
+
+
+def typefilter(agent_t: type, agents: set, attr=lambda x: x) -> set:
+    return set(attr(x) for x in filter(lambda x: isinstance(attr(x), agent_t), agents))
 
 
 class Agent(object):
@@ -111,10 +114,6 @@ class Solo(Agent):
 
 class Input(Solo):
 
-    @staticmethod
-    def inverse():
-        return Output
-
     def __str__(self) -> str:
         return '%s ' % self.subject + ''.join(map(str, self.objects))
     
@@ -122,13 +121,12 @@ class Input(Solo):
 
 class Output(Solo):
 
-    @staticmethod
-    def inverse():
-        return Input
-
     def __str__(self) -> str:
         return '\u0305%s %s' % ('\u0305'.join(str(self.subject)),
                                 ''.join(map(str, self.objects)))
+
+Input.inverse = Output
+Output.inverse = Input
 
 
 
@@ -175,7 +173,7 @@ class Composition(Agent):
                 agents |= {agent}
 
         # NOTE: ((x)P | Q) -> (x)(P | Q)
-        for sagent in set(filter(lambda x: isinstance(x, Scope), agents)):
+        for sagent in typefilter(Scope, agents):
             rescope |= sagent.bindings - self.free_names
             sagent.bindings &= self.free_names
             if not sagent.bindings:
@@ -217,11 +215,11 @@ class Scope(Agent):
         return '(%s)%s' % (''.join(map(str, self.bindings)), self.agent)
 
 
-    def construct_sigma(self, objects_pairs: zip) -> dict:
+    def construct_sigma(self, iagent: Agent, oagent: Agent) -> dict:
         # NOTE: Graph partitioning > naive pairwise cases for intersection
         graph = Graph()
         sigma = {}
-        for pair in objects_pairs:
+        for pair in zip(iagent.objects, oagent.objects):
             graph.insert_edge(*pair)
         
         for partition in graph.partitions():
@@ -233,36 +231,124 @@ class Scope(Agent):
                 free_name = intersect.pop()
             for bound_name in set(partition) - {free_name}:
                 sigma[bound_name] = free_name
+
         return sigma
 
 
-    def reduce(self):
-        bindings = self.bindings
-        agent = self.agent.reduce()
+    def outer_outer(self, i: Input, o: Output) -> Agent:
+        agent, bindings = self.agent, self.bindings
+        if i.subject == o.subject and i.arity == o.arity:
+            sigma = self.construct_sigma(i, o)
+            agent.agents -= {i, o}
+            if not agent.agents:
+                agent.agents |= {Inaction()}
+            if len(agent.agents) == 1:
+                agent = agent.agents.pop()
+            return Match(type(self)(bindings, agent), sigma)
+        else:
+            return None
 
+
+    def outer_inner(self, i: Input, r: Agent, s: Agent, c: Composition,
+                    o: Output) -> Agent:
+        agent, bindings = self.agent, self.bindings
+        P = Composition(agent.agents - {i, r})
+        Q = Composition(c.agents - {o})
+        if i.subject == o.subject \
+        and i.arity == o.arity and o.subject not in s.bindings \
+        and s.bindings & P.free_names == set():
+            sigma = self.construct_sigma(i, o)
+            assert bindings <= sigma.keys() <= bindings | s.bindings
+            return Match(Scope(s.bindings, Composition({P, Q, r})), sigma)
+        else:
+            return None
+
+
+    def inner_inner(self, r1: Agent, s1: Agent, c1: Composition, i: Input,
+                    r2: Agent, s2: Agent, c2: Composition, o: Output) -> Agent:
+        agent, bindings = self.agent, self.bindings
+        P = Composition(agent.agents - {r1, r2})
+        Q = Composition(c1.agents - {i})
+        R = Composition(c2.agents - {o})
+        binds = s1.bindings | s2.bindings
+        if i.subject == o.subject and i.arity == o.arity \
+        and o.subject not in s1.bindings | s2.bindings \
+        and binds & P.free_names == set() \
+        and s1.bindings & R.free_names == s2.bindings & Q.free_names == set():
+            sigma = self.construct_sigma(i, o)
+            assert bindings <= sigma.keys() <= bindings | binds
+            return Match(Scope(binds, Composition({P, Q, R, r1, r2})), sigma)
+        else:
+            return None
+
+
+    def inner_fusion(self, r: Agent, s: Agent, c: Composition,
+                     i: Input, o: Output) -> Agent:
+        agent, bindings = self.agent, self.bindings
+        P = Composition(agent.agents - {r})
+        Q = Composition(c.agents - {i, o})
+        if i.subject == o.subject and i.arity == o.arity:
+            sigma = self.construct_sigma(i, o)
+            assert bindings <= sigma.keys() <= bindings | s.bindings
+            return Match(Scope(s.bindings, Composition({P, Q, r})), sigma)
+        else:
+            return None
+
+
+    def reduce(self):
+        agent = self.agent = self.agent.reduce()
+        bindings = self.bindings
+        
         # NOTE: (x)(y)(P) == (xy)(P)
         if isinstance(agent, Scope):
             bindings |= agent.bindings
             agent = agent.agent
 
-        # NOTE: (z)(̅u x | u y | P) -> Pσ
         if isinstance(agent, Composition):
-            for iagent in set(filter(lambda x: isinstance(x, Input), agent.agents)):
-                for oagent in set(filter(lambda x: isinstance(x, Output), agent.agents)):
-                    if iagent.subject == oagent.subject \
-                    and iagent.arity == oagent.arity:
-                        sigma = self.construct_sigma(zip(iagent.objects, oagent.objects))
-                        agent.agents -= {iagent, oagent}
-                        if not agent.agents:
-                            agent.agents |= {Inaction()}
-                        if len(agent.agents) == 1:
-                            agent = agent.agents.pop()
-                        return Match(type(self)(bindings, agent), sigma)
 
-        # NOTE: (z)(̅u x | !(w)(ux | Q) | P) -> (w)(P | Q | !(w)(ux | Q)σ
-        for Io in (Input, Output):
-            pass
+            # NOTE: (z)(̅u x | u y | P) -> Pσ
+            for iagent in typefilter(Input, agent.agents):
+                for oagent in typefilter(Output, agent.agents):
+                    ret = self.outer_outer(iagent, oagent)
+                    if ret:
+                        return ret
 
+            # NOTE: (z)(P | !(v)(u x | Q) | !(w)(̅u x | R)) ->
+            #       (vw)(P | Q | R | !(v)(u x | Q) | !(w)(̅u x | R))σ
+            for r1 in typefilter(Replication, agent.agents):
+                for s1 in typefilter(Scope, {r1.agent}):
+                    for c1 in typefilter(Composition, {s1.agent}):
+                        for i in typefilter(Input, c1.agents):
+                            for r2 in typefilter(Replication, agent.agents - {r1}):
+                                for s2 in typefilter(Scope, {r2.agent}):
+                                    for c2 in typefilter(Composition, {s2.agent}):
+                                        for o in typefilter(Output, c2.agents):
+                                            ret = self.inner_inner(r1, s1, c1, i, r2, s2, c2, o)
+                                            if ret:
+                                                return ret
+
+            # NOTE: (z)(P | !(w)(̅u y | u x | Q)) ->
+            #       (w)(P | Q |  !(w)(̅u y | u x | Q))σ
+            for r in typefilter(Replication, agent.agents):
+                for s in typefilter(Scope, {r.agent}):
+                    for c in typefilter(Composition, {s.agent}):
+                        for i in typefilter(Input, c.agents):
+                            for o in typefilter(Output, c.agents):
+                                ret = self.inner_fusion(r, s, c, i, o)
+                                if ret:
+                                    return ret
+
+            # NOTE: (z)(̅u x | !(w)(u x | Q) | P) -> (w)(P | Q | !(w)(u x | Q)σ
+            for Io in {Input, Output}:    
+                for i in typefilter(Io, agent.agents):
+                    for r in typefilter(Replication, agent.agents):
+                        for s in typefilter(Scope, {r.agent}):
+                            for c in typefilter(Composition, {s.agent}):
+                                for o in typefilter(Io.inverse, c.agents):
+                                    ret = self.outer_inner(i, r, s, c, o)
+                                    if ret:
+                                        return ret
+               
         return type(self)(bindings, agent)
 
 
@@ -338,9 +424,9 @@ class Replication(Agent):
         # NOTE: !(x)(P | !Q) -> (u)(!(x)(P | uz) | !(w)(uw | Q{w/z}))
         #       Flattening Theorem
         if isinstance(agent, Scope) and isinstance(agent.agent, Composition) \
-        and set(filter(lambda x: isinstance(x, Replication), agent.agent.agents)) != set():
+        and typefilter(Replication, agent.agent.agents) != set():
             P, xs = agent.agent, agent.bindings
-            Q = Composition(set(filter(lambda x: isinstance(x, Replication), P.agents)))
+            Q = Composition(typefilter(Replication, P.agents))
             P.agents -= Q.agents
             z = tuple(sorted(Q.free_names, key=lambda x: x.name))
             u = Name.fresh(self.names, 'u')
