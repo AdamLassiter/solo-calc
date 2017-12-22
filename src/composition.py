@@ -2,11 +2,12 @@
 
 from functools import reduce
 
-from calculus import Agent, Scope, Composition as BaseClass
-from calculus import typefilter
+import base
+from base import Agent
+from base import typefilter
 
 
-class Composition(BaseClass):
+class Composition(base.Composition):
 
     def __init__(self, agents: set) -> None:
         for agent in agents:
@@ -31,14 +32,14 @@ class Composition(BaseClass):
                 agents |= {agent}
 
         # NOTE: ((x)P | Q) -> (x)(P | Q)
-        for sagent in typefilter(Scope, agents):
+        for sagent in typefilter(base.Scope, agents):
             rescope |= sagent.bindings - self.free_names
             sagent.bindings &= self.free_names
             if not sagent.bindings:
                 agents -= {sagent}
                 agents |= {sagent.agent}
 
-        return Scope(rescope, type(self)(agents)) if rescope else type(self)(agents)
+        return base.Scope(rescope, Composition(agents)) if rescope else Composition(agents)
 
 
     @staticmethod
@@ -53,6 +54,11 @@ class Composition(BaseClass):
         return self._agents
 
 
+    @agents.setter
+    def agents(self, value: set):
+        self._agents = value
+
+
     @property
     def names(self) -> set:
         return self._attrs(self._agents, 'names')
@@ -61,3 +67,6 @@ class Composition(BaseClass):
     @property
     def bound_names(self) -> set:
         return self._attrs(self._agents, 'bound_names')
+
+
+base.Composition = Composition

@@ -1,16 +1,17 @@
 #! /usr/bin/env python3
 
-from calculus import Agent, Name, Scope, Match as BaseClass
+import base
+from base import Agent, Name
 
 
-class Match(BaseClass):
+class Match(base.Match):
 
     def __init__(self, agent: Agent, matches: dict) -> None:
         for key, value in matches.items():
             assert isinstance(key, Name) and isinstance(value, Name)
             # NOTE: Here, {a: c, b: c} renames both a and b to c
             assert key in agent.bound_names
-        assert isinstance(agent, Scope)
+        assert isinstance(agent, base.Scope)
 
         self.agent = agent
         self.matches = matches
@@ -46,3 +47,6 @@ class Match(BaseClass):
     @property
     def bound_names(self) -> set:
         return self.agent.bound_names
+
+
+base.Match = Match

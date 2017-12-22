@@ -1,9 +1,10 @@
 #! /usr/bin/env python3
 
-from calculus import Agent, Name, Solo as BaseClass
+import base
+from base import Agent, Name
 
 
-class Solo(BaseClass):
+class Solo(base.Solo):
 
     def __init__(self, subject: Name, objects: tuple) -> None:
         for name in objects:
@@ -12,6 +13,9 @@ class Solo(BaseClass):
         self.subject = subject
         self.objects = objects
         self.arity = len(objects)
+
+    def __str__(self) -> str:
+        return ' '.join(map(str, self.objects))
 
     def reduce(self) -> Agent:
         return type(self)(self.subject, self.objects)
@@ -33,16 +37,17 @@ class Solo(BaseClass):
 class Input(Solo):
 
     def __str__(self) -> str:
-        return '%s ' % self.subject + ''.join(map(str, self.objects))
+        return '%s %s' % (self.subject, super().__str__())
     
 
 
 class Output(Solo):
 
     def __str__(self) -> str:
-        return '\u0305%s %s' % ('\u0305'.join(str(self.subject)),
-                                ''.join(map(str, self.objects)))
+        return '\u0305%s %s' % ('\u0305'.join(str(self.subject)), super().__str__())
 
+
+base.Solo = Solo
 Solo.types = frozenset({Input, Output})
 Input.inverse = Output
 Output.inverse = Input

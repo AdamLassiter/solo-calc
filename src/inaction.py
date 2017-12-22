@@ -1,15 +1,16 @@
 #! /usr/bin/env python3
 
-from calculus import Agent, Inaction as BaseClass
+import base
+from base import Agent
 
 
-class Inaction(BaseClass):
+class Inaction(base.Inaction):
 
     def __str__(self) -> str:
         return '0'
 
     def reduce(self) -> Agent:
-        return type(self)()
+        return Inaction()
 
     @property
     def agents(self) -> set:
@@ -22,3 +23,6 @@ class Inaction(BaseClass):
     @property
     def bound_names(self) -> set:
         return set()
+
+
+base.Inaction = Inaction
