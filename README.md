@@ -4,9 +4,11 @@ This forms the submission for CM30082 Dissertation, MComp Comp.Sci. w/ Maths. fo
 
 ## Getting Started
 The project can be run from the [src/](src) directory without any need for compiling/building.
+Executing the [src/calculus.py](calculus.py) file runs all unit tests and then provides a REPL interface.
 
 ### Prerequisites
 * Python 3.6
+    * Multiset >= v2.0.0
 * Webbrowser with d3.js support
 
 ## Contributing
