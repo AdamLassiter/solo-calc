@@ -1,7 +1,5 @@
 #! /usr/bin/env python3
 
-from functools import reduce
-
 import base
 from base import Agent
 from base import typefilter
@@ -10,26 +8,26 @@ from base import typefilter
 class Composition(base.Composition):
 
     def __init__(self, agents: set) -> None:
+        super().__init__()
+
         for agent in agents:
             assert isinstance(agent, Agent)
 
-        self._agents = agents
+        self.agents = agents
 
 
     def __str__(self) -> str:
-        return '(%s)' % (' | '.join(map(str, self._agents)))
+        return '(%s)' % (' | '.join(map(str, self.agents)))
 
 
     def reduce(self) -> Agent:
-        agents = set()
+        agents = {agent.reduce() for agent in self.agents}
         rescope = set()
 
         # NOTE: ((a | b) | c) == (a | (b | c)) -> (a | b | c)
-        for agent in map(lambda x: x.reduce(), self._agents):
-            if isinstance(agent, Composition):
-                agents |= agent.agents
-            else:
-                agents |= {agent}
+        for cagent in typefilter(Composition, agents):
+            agents -= {cagent}
+            agents += cagent.agents
 
         # NOTE: ((x)P | Q) -> (x)(P | Q)
         for sagent in typefilter(base.Scope, agents):
@@ -39,34 +37,15 @@ class Composition(base.Composition):
                 agents -= {sagent}
                 agents |= {sagent.agent}
 
-        return base.Scope(rescope, Composition(agents)) if rescope else Composition(agents)
-
-
-    @staticmethod
-    def _attrs(s: set, attr: str) -> set:
-        return set(reduce(set.union,
-                          map(lambda x: frozenset(getattr(x, attr)), s),
-                          set()))
-
-
-    @property
-    def agents(self) -> set:
-        return self._agents
-
-
-    @agents.setter
-    def agents(self, value: set):
-        self._agents = value
-
-
-    @property
-    def names(self) -> set:
-        return self._attrs(self._agents, 'names')
-
-
-    @property
-    def bound_names(self) -> set:
-        return self._attrs(self._agents, 'bound_names')
-
+        if rescope:
+            return base.Scope(rescope, Composition(agents))
+        if len(agents) > 1:
+            return Composition(agents)
+        elif len(agents) == 1:
+            agent, = agents
+            return agent
+        else:
+            return base.Inaction()
+ 
 
 base.Composition = Composition

@@ -12,9 +12,8 @@ Expressions are immutable due to problems with adding mutable items to a set:
 Reductions are performed recursively:
     Each agent will first reduce each of its sub-agents.
     Then reduction rules are applied where applicable - this includes:
-        * Grouping nested operators of the same type
+        * Trivial cases for nested copies of operators and TODO: for identites of operators
         * Extracting scopes where applicable ((x)P | Q) -> (x)(P | Q) if x ∉ fn(Q)
-            TODO: should this be this way? or should scopes go inwards?
         * Finite reduction of (non-nested) replications
             See paper implementation
 
@@ -28,9 +27,13 @@ Renaming functions σ are found as follows:
     Define σ[bn] := fn ∀ bn ϵ G
 '''
 
+from functools import reduce, wraps
+
+
 # Filters a set for a given type -> set<agent_t> or {}
 def typefilter(agent_t: type, agents: set) -> set:
     return set(filter(lambda x: isinstance(x, agent_t), agents))
+
 
 # Non-empty typefilter -> set<agent_t> not {}
 def netf(agent_t: type, agent) -> set:
@@ -41,8 +44,26 @@ def netf(agent_t: type, agent) -> set:
         return agent_t.id(agent.agents)
 
 
+def _rebind(func):
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        ret = func(self, *args, **kwargs)
+        for agent in self.agents:
+            agent.bound_names = self.bound_names
+        return ret
+    return wrapper
+
+
 class Agent(object):
-    
+
+    def __init__(self) -> None:
+        self._agents = set()
+        self._bound_names = set()
+        self._bindings = set()
+
+    def __str__(self) -> str:
+        raise NotImplementedError
+
     def reduce(self):
         raise NotImplementedError
 
@@ -50,13 +71,41 @@ class Agent(object):
     def id(self, agents: set) -> set:
         raise NotImplementedError
 
+    @staticmethod
+    def _attrs(s: set, attr: str) -> set:
+        return set(reduce(set.union,
+                          map(lambda x: frozenset(getattr(x, attr)), s),
+                          set()))
+
+    @property
+    def agent(self) -> object:
+        if len(self._agents) == 1:
+            agent, = self._agents
+            return agent
+        elif len(self._agents) == 0:
+            return None
+        else:
+            raise TypeError('Ambiguous: agent contains multiple children')
+
+    @agent.setter
+    def agent(self, value: object):
+        if len(self._agents) <= 1:
+            self._agents = {value}
+        else:
+            raise TypeError('Ambiguous: agent contains multiple children')
+
     @property
     def agents(self) -> set:
-        raise NotImplementedError
+        return self._agents
+
+    @agents.setter
+    @_rebind
+    def agents(self, value: set) -> None:
+        self._agents = value 
 
     @property
     def names(self) -> set:
-        raise NotImplementedError
+        return self._attrs(self._agents, 'names')
     
     @property
     def free_names(self) -> set:
@@ -64,7 +113,12 @@ class Agent(object):
 
     @property
     def bound_names(self) -> set:
-        raise NotImplementedError
+        return self._bound_names
+
+    @bound_names.setter
+    @_rebind
+    def bound_names(self, value: set) -> None:
+        self._bound_names = value
 
 
 class Name(object):
@@ -73,17 +127,17 @@ class Name(object):
         self.name = name
         self.fusions = {self}
 
-    def __hash__(self):
+    def __hash__(self) -> hash:
         return hash(self.name)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         assert isinstance(other, type(self))
         return self.name == other.name
 
-    def fuse_into(self, other):
+    def fuse_into(self, other) -> None:
         assert isinstance(other, type(self))
         fusions = self.fusions | other.fusions
         for name in fusions:
@@ -91,7 +145,7 @@ class Name(object):
             name.name = other.name
 
     @classmethod
-    def fresh(cls, names: set, name_hint: str):
+    def fresh(cls, names: set, name_hint: str) -> object:
         i = 0
         while name_hint + str(i) in [n.name for n  in names]:
             i += 1

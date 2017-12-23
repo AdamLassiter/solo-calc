@@ -7,6 +7,8 @@ from base import Agent, Name
 class Solo(base.Solo):
 
     def __init__(self, subject: Name, objects: tuple) -> None:
+        super().__init__()
+
         for name in objects:
             assert isinstance(name, Name)
 
@@ -21,24 +23,14 @@ class Solo(base.Solo):
         return type(self)(self.subject, self.objects)
 
     @property
-    def agents(self) -> set:
-        return set()
-
-    @property
     def names(self) -> set:
         return {self.subject} | {obj for obj in self.objects}
 
-    @property
-    def bound_names(self) -> set:
-        return set()
-
-
-
+ 
 class Input(Solo):
 
     def __str__(self) -> str:
         return '%s %s' % (self.subject, super().__str__())
-    
 
 
 class Output(Solo):
@@ -47,7 +39,7 @@ class Output(Solo):
         return '\u0305%s %s' % ('\u0305'.join(str(self.subject)), super().__str__())
 
 
-base.Solo = Solo
 Solo.types = frozenset({Input, Output})
 Input.inverse = Output
 Output.inverse = Input
+base.Solo = Solo

@@ -1,13 +1,14 @@
 #! /usr/bin/env python3
 
 import base
-from base import Agent, Name, Solo
+from base import Agent, Name
 from base import typefilter
 
 
 class Replication(base.Replication):
 
     def __init__(self, agent: Agent) -> None:
+        super().__init__()
         self.agent = agent
 
 
@@ -16,9 +17,9 @@ class Replication(base.Replication):
 
 
     def reduce(self):
-        # FIXME: Should this be here?
+        # FIXME: Should this reduce?
         # Reduction inside of a replication is shaky
-        agent = self.agent.reduce()
+        agent = self.agent
 
         # NOTE: !(!(P)) == !(P)
         if isinstance(agent, Replication):
@@ -36,27 +37,15 @@ class Replication(base.Replication):
             ws = []
             for _ in z:
                 ws += [Name.fresh(self.names | set(ws), 'w')]
-            Io, = Solo.types
+            Io, = base.Solo.types
             Prep = Replication(base.Scope(xs, base.Composition({P, Io(u, z)})))
             Qrep = base.Match(base.Scope(set(ws), base.Composition({Q, Io.inverse(u, ws)})), dict(zip(ws, z)))
             return base.Scope({u}, base.Composition({Prep, Qrep}))
-
-        return Replication(agent)
-
-
-    @property
-    def agents(self) -> set:
-        return {self.agent}
-
-
-    @property
-    def names(self) -> set:
-        return self.agent.names
-
-
-    @property
-    def bound_names(self) -> set:
-        return self.agent.bound_names
-
+        
+        if agent:
+            return Replication(agent)
+        else:
+            return base.Inaction()
+ 
 
 base.Replication = Replication
