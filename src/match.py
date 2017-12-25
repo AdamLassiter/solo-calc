@@ -26,7 +26,7 @@ class Match(base.Match):
 
     def reduce(self) -> Agent:
         agent = self.agent
-        agent.bindings -= set(self.matches.keys())
+        agent.bindings -= frozenset(self.matches.keys())
 
         for key, value in self.matches.items():
             key.fuse_into(value)

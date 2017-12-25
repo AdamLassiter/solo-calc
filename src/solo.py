@@ -23,8 +23,8 @@ class Solo(base.Solo):
         return type(self)(self.subject, self.objects)
 
     @property
-    def names(self) -> set:
-        return {self.subject} | {obj for obj in self.objects}
+    def names(self) -> frozenset:
+        return frozenset({self.subject} | {obj for obj in self.objects})
 
  
 class Input(Solo):

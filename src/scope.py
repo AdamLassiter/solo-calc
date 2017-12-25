@@ -8,7 +8,7 @@ from graph import Graph
 
 class Scope(base.Scope):
 
-    def __init__(self, bindings: set, agent: Agent) -> None:
+    def __init__(self, bindings: frozenset, agent: Agent) -> None:
         super().__init__()
 
         for binding in bindings:
@@ -25,7 +25,7 @@ class Scope(base.Scope):
     def construct_sigma(self, iagent: Agent, oagent: Agent) -> dict:
         # NOTE: Graph partitioning > naive pairwise cases for intersection
         graph = Graph()
-        sigma = {}
+        sigma = dict()
         for pair in zip(iagent.objects, oagent.objects):
             graph.insert_edge(*pair)
         
@@ -36,7 +36,7 @@ class Scope(base.Scope):
                 free_name, = partition
             else:
                 free_name, = intersect
-            for bound_name in set(partition) - {free_name}:
+            for bound_name in partition - {free_name}:
                 sigma[bound_name] = free_name
 
         return sigma
@@ -55,34 +55,43 @@ class Scope(base.Scope):
     def outer_inner(self, i: base.Solo, r: Agent, s: Agent, c: base.Composition,
                     o: base.Solo) -> Agent:
         agent, bindings = self.agent, self.bindings
+        self.freeze = True
         P = base.Composition(agent.agents - {i, r})
         Q = base.Composition(c.agents - {o})
         if i.subject == o.subject and i.arity == o.arity \
         and isinstance(i, o.inverse) and o.subject not in s.bindings \
-        and s.bindings & P.free_names == set():
+        and s.bindings & P.free_names == frozenset():
             sigma = self.construct_sigma(i, o)
             assert bindings <= sigma.keys() <= bindings | s.bindings
-            return base.Match(Scope(s.bindings, base.Composition({P, Q, r})), sigma)
+            ret = base.Match(Scope(s.bindings | bindings, base.Composition({P, Q, r})), sigma)
+            ret.freeze = False
         else:
-            return None
+            ret = None
+        self.freeze = False
+        return ret
 
 
     def inner_inner(self, r1: Agent, s1: Agent, c1: base.Composition, i: base.Solo,
                     r2: Agent, s2: Agent, c2: base.Composition, o: base.Solo) -> Agent:
         agent, bindings = self.agent, self.bindings
+        self.freeze = True
         P = base.Composition(agent.agents - {r1, r2})
         Q = base.Composition(c1.agents - {i})
         R = base.Composition(c2.agents - {o})
         binds = s1.bindings | s2.bindings
         if i.subject == o.subject and i.arity == o.arity and isinstance(i, o.inverse) \
         and o.subject not in s1.bindings | s2.bindings \
-        and binds & P.free_names == set() \
-        and s1.bindings & R.free_names == s2.bindings & Q.free_names == set():
+        and binds & P.free_names == frozenset() \
+        and s1.bindings & R.free_names == s2.bindings & Q.free_names == frozenset():
+            print(P, Q, R, binds, sep='\n')
             sigma = self.construct_sigma(i, o)
             assert bindings <= sigma.keys() <= bindings | binds
-            return base.Match(Scope(binds, base.Composition({P, Q, R, r1, r2})), sigma)
+            ret =  base.Match(Scope(binds, base.Composition({P, Q, R, r1, r2})), sigma)
+            ret.freeze = False
         else:
-            return None
+            ret = None
+        self.freeze = False
+        return ret
 
 
     def inner_fusion(self, r: Agent, s: Agent, c: base.Composition,
@@ -166,23 +175,23 @@ class Scope(base.Scope):
 
 
     @property
-    def bound_names(self) -> set:
+    def bound_names(self) -> frozenset:
         return self._bound_names | self._bindings
 
 
     @bound_names.setter
-    def bound_names(self, value: set):
+    def bound_names(self, value: frozenset):
         self._bound_names = value
 
 
     @property
-    def bindings(self) -> set:
+    def bindings(self) -> frozenset:
         return self._bindings
 
 
     @bindings.setter
     @base._rebind
-    def bindings(self, value: set) -> None:
+    def bindings(self, value: frozenset) -> None:
         self._bindings = value
 
 

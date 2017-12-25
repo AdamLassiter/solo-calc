@@ -3,32 +3,31 @@
 class Graph(dict):
 
     def insert_node(self, node):
-        self[node] = set()
+        self[node] = frozenset()
 
     def insert_edge(self, *nodes):
-        nodes = set(nodes)
+        nodes = frozenset(nodes)
         for node in nodes:
             if node not in self.keys():
                 self.insert_node(node)
             self[node] |= nodes - {node}
 
-    def span(self, node) -> set:
+    def span(self, node) -> frozenset:
         assert node in self.keys()
         frontier, span = self[node], {node}
         while frontier:
             span |= frontier
-            next_frontier = set()
+            next_frontier = frozenset()
             for node in frontier:
                 next_frontier |= self[node]
             frontier = next_frontier - span
-        return span
+        return frozenset(span)
 
-    def partitions(self) -> set:
+    def partitions(self) -> frozenset:
         nodes = set(self.keys())
-        partitions = set()
+        partitions = frozenset()
         while nodes:
-            span = frozenset(self.span(nodes.pop()))
+            span = self.span(nodes.pop())
             partitions |= {span}
             nodes -= span
         return partitions
-

@@ -10,22 +10,10 @@ class Inaction(base.Inaction):
         return '0'
     
     def __bool__(self) -> bool:
-        return True
+        return False
 
     def reduce(self) -> Agent:
         return Inaction()
-
-    @property
-    def agents(self) -> set:
-        return set()
-
-    @property
-    def names(self) -> set:
-        return set()
-
-    @property
-    def bound_names(self) -> set:
-        return set()
 
 
 base.Inaction = Inaction

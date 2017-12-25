@@ -13,7 +13,7 @@ class Replication(base.Replication):
 
 
     def __str__(self) -> str:
-        return '!(%s)' % self.agent
+        return '!%s' % self.agent
 
 
     def reduce(self):
@@ -28,7 +28,7 @@ class Replication(base.Replication):
         # NOTE: !(x)(P | !Q) -> (u)(!(x)(P | uz) | !(w)(uw | Q{w/z}))
         #       Flattening Theorem
         if isinstance(agent, base.Scope) and isinstance(agent.agent, base.Composition) \
-        and typefilter(Replication, agent.agent.agents) != set():
+        and typefilter(Replication, agent.agent.agents) != frozenset():
             P, xs = agent.agent, agent.bindings
             Q = base.Composition(typefilter(Replication, P.agents))
             P.agents -= Q.agents
@@ -36,10 +36,11 @@ class Replication(base.Replication):
             u = Name.fresh(self.names, 'u')
             ws = []
             for _ in z:
-                ws += [Name.fresh(self.names | set(ws), 'w')]
+                ws += [Name.fresh(self.names | frozenset(ws), 'w')]
             Io, = base.Solo.types
             Prep = Replication(base.Scope(xs, base.Composition({P, Io(u, z)})))
-            Qrep = base.Match(base.Scope(set(ws), base.Composition({Q, Io.inverse(u, ws)})), dict(zip(ws, z)))
+            Qrep = base.Match(base.Scope(frozenset(ws), base.Composition({Io.inverse(u, ws),
+                                                                          Q})), dict(zip(ws, z)))
             return base.Scope({u}, base.Composition({Prep, Qrep}))
         
         if agent:

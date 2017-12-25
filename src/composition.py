@@ -7,7 +7,7 @@ from base import typefilter
 
 class Composition(base.Composition):
 
-    def __init__(self, agents: set) -> None:
+    def __init__(self, agents: frozenset) -> None:
         super().__init__()
 
         for agent in agents:
@@ -21,13 +21,16 @@ class Composition(base.Composition):
 
 
     def reduce(self) -> Agent:
-        agents = {agent.reduce() for agent in self.agents}
-        rescope = set()
+        agents = frozenset({agent.reduce() for agent in self.agents})
+        rescope = frozenset()
 
         # NOTE: ((a | b) | c) == (a | (b | c)) -> (a | b | c)
         for cagent in typefilter(Composition, agents):
             agents -= {cagent}
             agents += cagent.agents
+
+        # NOTE: (0 | P) -> P
+        agents -= typefilter(base.Inaction, agents)
 
         # NOTE: ((x)P | Q) -> (x)(P | Q)
         for sagent in typefilter(base.Scope, agents):

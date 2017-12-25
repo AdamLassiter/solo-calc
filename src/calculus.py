@@ -47,7 +47,7 @@ def build_inaction(match, names: dict) -> Inaction:
 
 composition = re.compile(r'\s?\((?<agents>(?<agent>([^|()]|(?<rec>\((?:[^()]++|(?&rec))*\)))+)(\|(?&agents))?)\)\s?')
 def build_composition(match, names: dict) -> Composition:
-    agents = {build_agent(string, names) for string in match.captures('agent')}
+    agents = frozenset({build_agent(string, names) for string in match.captures('agent')})
     return Composition(agents)
 
 
@@ -63,11 +63,13 @@ def build_scope(match, names: dict) -> Scope:
     for name in match['bindings'].split():
         if name not in names.keys():
             names[name] = Name(name)
-    bindings = {names[name] for name in match['bindings'].split()}
+    bindings = frozenset({names[name] for name in match['bindings'].split()})
     return Scope(bindings, agent)
 
 
-def build_agent(string: str, names: dict = {}) -> Agent:
+def build_agent(string: str, names: dict=None) -> Agent:
+    if names is None:
+        names = dict()
     for regex, build_func in [(_input, build_input), (output, build_output), (inaction, build_inaction),
                                (scope, build_scope), (composition, build_composition),
                                (replication, build_replication)]:
@@ -78,19 +80,30 @@ def build_agent(string: str, names: dict = {}) -> Agent:
 
 
 
+# TODO: Negative test cases
 class TestSoloCalculus(unittest.TestCase):
 
     def test_fusion(self):
+        print('testing standard fusion')
         agent = build_agent('(x)(u x | ^u y | p x y)')
         self.assertEqual(str(agent.reduce().reduce()), 'p y y')
-        # TODO: Negative test cases
 
 
-    def test_replication_inner_outer(self):
+    def test_cross_replicator(self):
+        print('testing cross-replicator fusion')
         agent = build_agent('(y)(u x | !(x)(^u y | p x y))')
-        for i in range(5):
-            print(agent)
-            agent = agent.reduce()
+        print(agent.reduce().reduce())
+
+
+    def test_inter_replicator(self):
+        print('testing inter-replicator fusion')
+        agent = build_agent('(xy)(!(z)(u x | p x y) | !(z)(^u y | p u z))')
+        agent = agent.reduce()
+        
+
+    def test_multi_replicator(self):
+        print('testing multi-replicator fusion')
+
 
 
 def repl():

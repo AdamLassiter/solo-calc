@@ -31,12 +31,12 @@ from functools import reduce, wraps
 
 
 # Filters a set for a given type -> set<agent_t> or {}
-def typefilter(agent_t: type, agents: set) -> set:
-    return set(filter(lambda x: isinstance(x, agent_t), agents))
+def typefilter(agent_t: type, agents: frozenset) -> frozenset:
+    return frozenset(filter(lambda x: isinstance(x, agent_t), agents))
 
 
 # Non-empty typefilter -> set<agent_t> not {}
-def netf(agent_t: type, agent) -> set:
+def netf(agent_t: type, agent) -> frozenset:
     tf = typefilter(agent_t, agent.agents)
     if tf:
         return tf
@@ -48,8 +48,9 @@ def _rebind(func):
     @wraps(func)
     def wrapper(self, *args, **kwargs):
         ret = func(self, *args, **kwargs)
-        for agent in self.agents:
-            agent.bound_names = self.bound_names
+        if not self.freeze:
+            for agent in self.agents:
+                agent.bound_names = self.bound_names
         return ret
     return wrapper
 
@@ -57,9 +58,10 @@ def _rebind(func):
 class Agent(object):
 
     def __init__(self) -> None:
-        self._agents = set()
-        self._bound_names = set()
-        self._bindings = set()
+        self._freeze = False
+        self._agents = frozenset()
+        self._bound_names = frozenset()
+        self._bindings = frozenset()
 
     def __str__(self) -> str:
         raise NotImplementedError
@@ -68,14 +70,14 @@ class Agent(object):
         raise NotImplementedError
 
     @staticmethod
-    def id(self, agents: set) -> set:
+    def id(self, agents: frozenset) -> frozenset:
         raise NotImplementedError
 
     @staticmethod
-    def _attrs(s: set, attr: str) -> set:
-        return set(reduce(set.union,
-                          map(lambda x: frozenset(getattr(x, attr)), s),
-                          set()))
+    def _attrs(s: frozenset, attr: str) -> frozenset:
+        return frozenset(reduce(frozenset.union,
+                                map(lambda x: frozenset(getattr(x, attr)), s),
+                                frozenset()))
 
     @property
     def agent(self) -> object:
@@ -90,34 +92,44 @@ class Agent(object):
     @agent.setter
     def agent(self, value: object):
         if len(self._agents) <= 1:
-            self._agents = {value}
+            self._agents = frozenset({value})
         else:
             raise TypeError('Ambiguous: agent contains multiple children')
 
     @property
-    def agents(self) -> set:
+    def freeze(self) -> bool:
+        return self._freeze
+
+    @freeze.setter
+    def freeze(self, value: bool) -> bool:
+        self._freeze = value
+        for agent in self.agents:
+            agent.freeze = value
+
+    @property
+    def agents(self) -> frozenset:
         return self._agents
 
     @agents.setter
     @_rebind
-    def agents(self, value: set) -> None:
-        self._agents = value 
+    def agents(self, value: frozenset) -> None:
+        self._agents = value
 
     @property
-    def names(self) -> set:
+    def names(self) -> frozenset:
         return self._attrs(self._agents, 'names')
     
     @property
-    def free_names(self) -> set:
+    def free_names(self) -> frozenset:
         return self.names - self.bound_names
 
     @property
-    def bound_names(self) -> set:
+    def bound_names(self) -> frozenset:
         return self._bound_names
 
     @bound_names.setter
     @_rebind
-    def bound_names(self, value: set) -> None:
+    def bound_names(self, value: frozenset) -> None:
         self._bound_names = value
 
 
@@ -125,7 +137,7 @@ class Name(object):
     
     def __init__(self, name: str) -> None:
         self.name = name
-        self.fusions = {self}
+        self.fusions = frozenset({self})
 
     def __hash__(self) -> hash:
         return hash(self.name)
@@ -145,7 +157,7 @@ class Name(object):
             name.name = other.name
 
     @classmethod
-    def fresh(cls, names: set, name_hint: str) -> object:
+    def fresh(cls, names: frozenset, name_hint: str) -> object:
         i = 0
         while name_hint + str(i) in [n.name for n  in names]:
             i += 1
@@ -174,4 +186,3 @@ class Scope(Agent):
 
 class Match(Agent):
     pass
-
