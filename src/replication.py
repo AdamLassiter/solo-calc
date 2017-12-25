@@ -19,7 +19,7 @@ class Replication(base.Replication):
     def reduce(self):
         # FIXME: Should this reduce?
         # Reduction inside of a replication is shaky
-        agent = self.agent
+        agent = self.agent.reduce()
 
         # NOTE: !(!(P)) == !(P)
         if isinstance(agent, Replication):
@@ -27,22 +27,29 @@ class Replication(base.Replication):
 
         # NOTE: !(x)(P | !Q) -> (u)(!(x)(P | uz) | !(w)(uw | Q{w/z}))
         #       Flattening Theorem
-        if isinstance(agent, base.Scope) and isinstance(agent.agent, base.Composition) \
-        and typefilter(Replication, agent.agent.agents) != frozenset():
-            P, xs = agent.agent, agent.bindings
-            Q = base.Composition(typefilter(Replication, P.agents))
-            P.agents -= Q.agents
-            z = tuple(sorted(Q.free_names, key=lambda x: x.name))
+        # TODO: Change to new search style
+        for (s, c, r) in ((s, c, r)
+                          for s in typefilter(base.Scope, {agent})
+                          for c in typefilter(base.Composition, s.agents)
+                          for r in typefilter(Replication, c.agents)):
+            P = base.Composition(c.agents - {r})
+            Q = r.agent
+            z = tuple(sorted(Q.free_names))
             u = Name.fresh(self.names, 'u')
-            ws = []
+            ws = frozenset()
             for _ in z:
-                ws += [Name.fresh(self.names | frozenset(ws), 'w')]
-            Io, = base.Solo.types
-            Prep = Replication(base.Scope(xs, base.Composition({P, Io(u, z)})))
-            Qrep = base.Match(base.Scope(frozenset(ws), base.Composition({Io.inverse(u, ws),
-                                                                          Q})), dict(zip(ws, z)))
-            return base.Scope({u}, base.Composition({Prep, Qrep}))
-        
+                ws |= {Name.fresh(self.names | frozenset(ws), 'w')}
+            wt = tuple(ws)
+            Io, _ = base.Solo.types
+            Prep = base.Scope(s.bindings,
+                              base.Composition(frozenset({P, Io(u, z)})))
+            Qrep = base.Composition(frozenset({base.Scope(ws, Io.inverse(u, wt)),
+                                               base.Match(base.Scope(ws, Q),
+                                                          dict(zip(wt,z)))}))
+            return base.Scope(frozenset({u}),
+                              base.Composition(frozenset({Replication(Prep), 
+                                                          Replication(Qrep)})))
+
         if agent:
             return Replication(agent)
         else:

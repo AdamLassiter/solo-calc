@@ -12,7 +12,6 @@ class Match(base.Match):
         for key, value in matches.items():
             assert isinstance(key, Name) and isinstance(value, Name)
             # NOTE: Here, {a: c, b: c} renames both a and b to c
-            assert key in agent.bound_names
         assert isinstance(agent, base.Scope)
 
         self.agent = agent
@@ -28,8 +27,10 @@ class Match(base.Match):
         agent = self.agent
         agent.bindings -= frozenset(self.matches.keys())
 
-        for key, value in self.matches.items():
-            key.fuse_into(value)
+        for name in self.names:
+            for key, value in self.matches.items():
+                if key == name:
+                    name.fusion = value
 
         return agent.reduce()
 

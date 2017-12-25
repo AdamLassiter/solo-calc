@@ -63,8 +63,19 @@ class Agent(object):
         self._bound_names = frozenset()
         self._bindings = frozenset()
 
+    def equals(self, other) -> bool:
+        return self._bindings == other._bindings and self <= other and other <= self
+
+    def __le__(self, other) -> bool:
+        return all(any(mine.equals(yours)
+                       for yours in other.agents)
+                  for mine in self.agents)
+
     def __str__(self) -> str:
         raise NotImplementedError
+
+    def __repr__(self) -> str:
+        return self.__str__()
 
     def reduce(self):
         raise NotImplementedError
@@ -113,6 +124,8 @@ class Agent(object):
     @agents.setter
     @_rebind
     def agents(self, value: frozenset) -> None:
+        if self._agents:
+            raise Exception('Mutation of agents set')
         self._agents = value
 
     @property
@@ -133,33 +146,17 @@ class Agent(object):
         self._bound_names = value
 
 
-class Name(object):
-    
-    def __init__(self, name: str) -> None:
-        self.name = name
-        self.fusions = frozenset({self})
+class Name(str):
 
-    def __hash__(self) -> hash:
-        return hash(self.name)
-
-    def __str__(self) -> str:
-        return self.name
-
-    def __eq__(self, other) -> bool:
-        assert isinstance(other, type(self))
-        return self.name == other.name
-
-    def fuse_into(self, other) -> None:
-        assert isinstance(other, type(self))
-        fusions = self.fusions | other.fusions
-        for name in fusions:
-            name.fusions = fusions - {name}
-            name.name = other.name
+    def __new__(cls, *args):
+        ret = super().__new__(cls, *args)
+        ret.fusion = None
+        return ret
 
     @classmethod
     def fresh(cls, names: frozenset, name_hint: str) -> object:
         i = 0
-        while name_hint + str(i) in [n.name for n  in names]:
+        while name_hint + str(i) in names:
             i += 1
         return cls(name_hint + str(i))
 

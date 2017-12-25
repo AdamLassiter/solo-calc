@@ -28,7 +28,7 @@ class Scope(base.Scope):
         sigma = dict()
         for pair in zip(iagent.objects, oagent.objects):
             graph.insert_edge(*pair)
-        
+
         for partition in graph.partitions():
             intersect = self.free_names & partition
             assert len(intersect) <= 1
@@ -43,18 +43,18 @@ class Scope(base.Scope):
 
 
     def outer_outer(self, i: base.Solo, o: base.Solo) -> Agent:
-        agent, bindings = self.agent, self.bindings
+        agent, bindings = self.reduction, self.bindings
         if i.subject == o.subject and i.arity == o.arity and isinstance(i, o.inverse):
+            P = base.Composition(agent.agents - {i, o})
             sigma = self.construct_sigma(i, o)
-            agent.agents -= {i, o}
-            return base.Match(Scope(bindings, agent), sigma)
+            return base.Match(Scope(bindings, P), sigma)
         else:
             return None
 
 
     def outer_inner(self, i: base.Solo, r: Agent, s: Agent, c: base.Composition,
                     o: base.Solo) -> Agent:
-        agent, bindings = self.agent, self.bindings
+        agent, bindings = self.reduction, self.bindings
         self.freeze = True
         P = base.Composition(agent.agents - {i, r})
         Q = base.Composition(c.agents - {o})
@@ -73,7 +73,7 @@ class Scope(base.Scope):
 
     def inner_inner(self, r1: Agent, s1: Agent, c1: base.Composition, i: base.Solo,
                     r2: Agent, s2: Agent, c2: base.Composition, o: base.Solo) -> Agent:
-        agent, bindings = self.agent, self.bindings
+        agent, bindings = self.reduction, self.bindings
         self.freeze = True
         P = base.Composition(agent.agents - {r1, r2})
         Q = base.Composition(c1.agents - {i})
@@ -96,7 +96,7 @@ class Scope(base.Scope):
 
     def inner_fusion(self, r: Agent, s: Agent, c: base.Composition,
                      i: base.Solo, o: base.Solo) -> Agent:
-        agent, bindings = self.agent, self.bindings
+        agent, bindings = self.reduction, self.bindings
         P = base.Composition(agent.agents - {r})
         Q = base.Composition(c.agents - {i, o})
         if i.subject == o.subject and i.arity == o.arity and isinstance(i, o.inverse):
@@ -108,7 +108,7 @@ class Scope(base.Scope):
 
 
     def reduce(self):
-        agent = self.agent = self.agent.reduce()
+        agent = self.reduction = self.agent.reduce()
         bindings = self.bindings
 
         # NOTE: (x)(y)(P) == (xy)(P)

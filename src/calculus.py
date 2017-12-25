@@ -11,7 +11,7 @@ from scope import Scope
 from match import Match
 
 
-_input = re.compile(r'\s?(?P<subject>[a-z]+)\s(?P<objects>([a-z]+\s?)+)\s?')
+_input = re.compile(r'\s?(?P<subject>[a-z0-9]+)\s(?P<objects>([a-z0-9]+\s?)+)\s?')
 def build_input(match, names: dict) -> Input:
     subj_name = match['subject']
     if subj_name not in names.keys():
@@ -25,7 +25,7 @@ def build_input(match, names: dict) -> Input:
     return Input(subject, tuple(objects))
 
 
-output = re.compile(r'\s?\^(?P<subject>[a-z]+)\s(?P<objects>([a-z]+\s)+)\s?')
+output = re.compile(r'\s?\^(?P<subject>[a-z0-9]+)(?P<objects>(\s[a-z0-9]+)+)\s?')
 def build_output(match, names: dict) -> Output:
     subj_name = match['subject']
     if subj_name not in names.keys():
@@ -46,7 +46,7 @@ def build_inaction(match, names: dict) -> Inaction:
 
 composition = re.compile(r'\s?\((?<agents>(?<agent>([^|()]|(?<rec>\((?:[^()]++|(?&rec))*\)))+)(\|(?&agents))?)\)\s?')
 def build_composition(match, names: dict) -> Composition:
-    agents = frozenset({build_agent(string, names) for string in match.captures('agent')})
+    agents = frozenset(build_agent(string, names) for string in match.captures('agent'))
     return Composition(agents)
 
 
@@ -56,13 +56,13 @@ def build_replication(match, names: dict) -> Replication:
     return Replication(agent)
 
 
-scope = re.compile(r'\s?\((?P<bindings>([a-z]+\s?)+)\)(?P<agent>\(.+\))\s?')
+scope = re.compile(r'\s?\((?P<bindings>([a-z0-9]+\s?)+)\)(?P<agent>\(.+\))\s?')
 def build_scope(match, names: dict) -> Scope:
     agent = build_agent(match['agent'], names)
     for name in match['bindings'].split():
         if name not in names.keys():
             names[name] = Name(name)
-    bindings = frozenset({names[name] for name in match['bindings'].split()})
+    bindings = frozenset(names[name] for name in match['bindings'].split())
     return Scope(bindings, agent)
 
 

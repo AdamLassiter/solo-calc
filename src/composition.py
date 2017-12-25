@@ -21,13 +21,13 @@ class Composition(base.Composition):
 
 
     def reduce(self) -> Agent:
-        agents = frozenset({agent.reduce() for agent in self.agents})
+        agents = frozenset(agent.reduce() for agent in self.agents)
         rescope = frozenset()
 
         # NOTE: ((a | b) | c) == (a | (b | c)) -> (a | b | c)
         for cagent in typefilter(Composition, agents):
             agents -= {cagent}
-            agents += cagent.agents
+            agents |= cagent.agents
 
         # NOTE: (0 | P) -> P
         agents -= typefilter(base.Inaction, agents)
