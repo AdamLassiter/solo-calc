@@ -221,3 +221,6 @@ TSWLatexianTemp*
 
 # Vim swapfiles
 *.swp
+
+# Python3 cache files
+__pycache__
