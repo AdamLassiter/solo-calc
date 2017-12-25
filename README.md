@@ -4,7 +4,7 @@ This forms the submission for CM30082 Dissertation, MComp Comp.Sci. w/ Maths. fo
 
 ## Getting Started
 The project can be run from the [src/](src) directory without any need for compiling/building.  
-Executing the [calculus.py](src/calculus.py) file runs all unit tests and then provides a REPL interface.
+Executing the [tests.py](/src/tests.py) file runs all available unit tests, while the [calculus.py](src/calculus.py) file provides a REPL interface.
 
 ### Prerequisites
 * Python 3.6
