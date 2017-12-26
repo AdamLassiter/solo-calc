@@ -5,13 +5,13 @@ import unittest
 from calculus import build_agent, reduce
 
 
-# TODO: Negative test cases
+# TODO: Multiple +ve/-ve test cases
 class TestSoloCalculus(unittest.TestCase):
 
     def test_fusion(self):
         print('\ntesting standard fusion')
-        agent = build_agent('(x)(u x | ^u y | p x y)')
-        reduction = build_agent('p y y')
+        agent = build_agent('(x y)(u x | ^u y | p x y)')
+        reduction = build_agent('p u0 u0')
         print(agent, '->', reduce(agent))
         self.assertTrue(reduction.equals(reduce(agent)))
         
@@ -34,14 +34,18 @@ class TestSoloCalculus(unittest.TestCase):
 
     def test_inter_replicator(self):
         print('\ntesting inter-replicator fusion')
-        agent = build_agent('(z)(!(x y)(u x | p x y) | !(x y)(^u y | p u z))')
-        #reduction = build_agent('')
+        agent = build_agent('(x y)(!(x)(u x | 0) | !(y)(^u y | 0) | p x y)')
+        reduction = build_agent('(!(x)(u x | 0) | !(y)(^u y | 0) | p u0 u0)')
         print(agent, '->', reduce(agent))
-        #self.assertTrue(reduction.equals(reduce(agent)))
+        self.assertTrue(reduction.equals(reduce(agent)))
        
 
     def test_multi_replicator(self):
         print('\ntesting multi-replicator fusion')
+        agent = build_agent('(x)(p p | !(y)(u x | ^u y | p x y))')
+        reduction = build_agent('(p p | p u0 u0 | !(y)(u x | ^u y | p x y))')
+        print(agent, '->', reduce(agent))
+        self.assertTrue(reduction.equals(reduce(agent)))
 
 
 if __name__ == '__main__':

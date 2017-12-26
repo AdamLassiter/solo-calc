@@ -60,7 +60,7 @@ class Scope(base.Scope):
         Q = base.Composition(c.agents - {o})
         if i.subject == o.subject and i.arity == o.arity \
         and isinstance(i, o.inverse) and o.subject not in s.bindings \
-        and s.bindings & P.free_names == frozenset():
+        and not s.bindings & P.free_names - bindings:
             sigma = self.construct_sigma(i, o)
             if bindings <= sigma.keys() <= bindings | s.bindings:
                 ret = base.Match(Scope(s.bindings | bindings, base.Composition({P, Q, r})), sigma)
@@ -82,10 +82,10 @@ class Scope(base.Scope):
         R = base.Composition(c2.agents - {o})
         binds = s1.bindings | s2.bindings
         if i.subject == o.subject and i.arity == o.arity and isinstance(i, o.inverse) \
-        and o.subject not in s1.bindings | s2.bindings \
-        and binds & P.free_names == frozenset() \
-        and s1.bindings & R.free_names == s2.bindings & Q.free_names == frozenset():
-            print(P, Q, R, binds, sep='\n')
+        and i.subject not in s1.bindings | s2.bindings \
+        and not binds & P.free_names - bindings \
+        and not s1.bindings & R.free_names - bindings \
+        and not s2.bindings & Q.free_names - bindings:
             sigma = self.construct_sigma(i, o)
             assert bindings <= sigma.keys() <= bindings | binds
             ret =  base.Match(Scope(binds, base.Composition({P, Q, R, r1, r2})), sigma)
@@ -149,8 +149,8 @@ class Scope(base.Scope):
                     if ret:
                         return ret
 
-                # NOTE: (z)(P | !(w)(̅u y | u x | Q)) ->
-                #       (w)(P | Q |  !(w)(̅u y | u x | Q))σ
+                # NOTE: (z)(P | !(w)(̅u x | u y | Q)) ->
+                #       (w)(P | Q |  !(w)(̅u x | u y | Q))σ
                 for agents in ((r, s, c, i, o)
                                for r in typefilter(base.Replication, agent.agents)
                                for s in typefilter(Scope, r.agents)
@@ -160,7 +160,7 @@ class Scope(base.Scope):
                     ret = self.inner_fusion(*agents)
                     if ret:
                         return ret
-                
+
                 # NOTE: (z)(̅u x | !(w)(u x | Q) | P) -> (w)(P | Q | !(w)(u x | Q)σ
                 for agents in ((i, r, s, c, o)
                                for i in typefilter(Io, agent.agents)

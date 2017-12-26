@@ -14,11 +14,12 @@ Reductions are performed recursively:
     Then reduction rules are applied where applicable - this includes:
         * Trivial cases for nested copies of operators and TODO: for identites of operators
         * Extracting scopes where applicable ((x)P | Q) -> (x)(P | Q) if x ∉ fn(Q)
+        * Applying the flattening theorem for 
         * Finite reduction of (non-nested) replications
             See paper implementation
 
 Fusions are performed as follows:
-    Output x on u, input u onto y -> Define/rename x := y
+    Input/Output on u of (bound) x and (free) y -> Define/rename x := y
     (x)(̅u x | u y | P) -> P{y / x}
 
 Renaming functions σ are found as follows:
