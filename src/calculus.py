@@ -56,7 +56,7 @@ def build_replication(match, names: dict) -> Replication:
     return Replication(agent)
 
 
-scope = re.compile(r'\s?\((?P<bindings>([a-z0-9]+\s?)+)\)(?P<agent>\(.+\))\s?')
+scope = re.compile(r'\s?\((?P<bindings>([a-z0-9]+\s?)+)\)(?P<agent>.+)\s?')
 def build_scope(match, names: dict) -> Scope:
     agent = build_agent(match['agent'], names)
     for name in match['bindings'].split():
@@ -77,6 +77,16 @@ def build_agent(string: str, names: dict=None) -> Agent:
             return build_func(match, names)
     raise Exception('Cannot build agent: %s' % string)
 
+
+def reduce(agent: Agent, verbose=False) -> Agent:
+    while True:
+        reduction = agent.reduce()
+        if verbose:
+            print(reduction)
+        if reduction.equals(agent):
+            return reduction
+        else:
+            agent = reduction
 
 
 def repl():

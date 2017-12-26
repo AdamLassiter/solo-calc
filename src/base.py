@@ -35,7 +35,7 @@ def typefilter(agent_t: type, agents: frozenset) -> frozenset:
     return frozenset(filter(lambda x: isinstance(x, agent_t), agents))
 
 
-# Non-empty typefilter -> set<agent_t> not {}
+# Non-empty typefilter -> nonempty set<agent_t>
 def netf(agent_t: type, agent) -> frozenset:
     tf = typefilter(agent_t, agent.agents)
     if tf:
@@ -77,7 +77,7 @@ class Agent(object):
     def __repr__(self) -> str:
         return self.__str__()
 
-    def reduce(self):
+    def reduce(self, matches: dict = {}) -> object:
         raise NotImplementedError
 
     @staticmethod
@@ -93,23 +93,23 @@ class Agent(object):
     @property
     def agent(self) -> object:
         if len(self._agents) == 1:
-            agent, = self._agents
+            agent, = self.agents
             return agent
-        elif len(self._agents) == 0:
+        elif len(self.agents) == 0:
             return None
         else:
             raise TypeError('Ambiguous: agent contains multiple children')
 
     @agent.setter
     def agent(self, value: object):
-        if len(self._agents) <= 1:
-            self._agents = frozenset({value})
+        if len(self.agents) <= 1:
+            self.agents = frozenset({value})
         else:
             raise TypeError('Ambiguous: agent contains multiple children')
 
     @property
     def freeze(self) -> bool:
-        return self._freeze
+       return self._freeze
 
     @freeze.setter
     def freeze(self, value: bool) -> bool:

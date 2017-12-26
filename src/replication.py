@@ -16,10 +16,10 @@ class Replication(base.Replication):
         return '!%s' % self.agent
 
 
-    def reduce(self):
+    def reduce(self, matches: dict = {}) -> Agent:
         # FIXME: Should this reduce?
         # Reduction inside of a replication is shaky
-        agent = self.agent.reduce()
+        agent = self.agent
 
         # NOTE: !(!(P)) == !(P)
         if isinstance(agent, Replication):
@@ -27,7 +27,6 @@ class Replication(base.Replication):
 
         # NOTE: !(x)(P | !Q) -> (u)(!(x)(P | uz) | !(w)(uw | Q{w/z}))
         #       Flattening Theorem
-        # TODO: Change to new search style
         for (s, c, r) in ((s, c, r)
                           for s in typefilter(base.Scope, {agent})
                           for c in typefilter(base.Composition, s.agents)
@@ -47,8 +46,8 @@ class Replication(base.Replication):
                                                base.Match(base.Scope(ws, Q),
                                                           dict(zip(wt,z)))}))
             return base.Scope(frozenset({u}),
-                              base.Composition(frozenset({Replication(Prep), 
-                                                          Replication(Qrep)})))
+                              base.Composition(frozenset({Replication(Prep.reduce(matches)), 
+                                                          Replication(Qrep.reduce(matches))})))
 
         if agent:
             return Replication(agent)

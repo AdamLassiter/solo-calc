@@ -30,10 +30,10 @@ class Scope(base.Scope):
             graph.insert_edge(*pair)
 
         for partition in graph.partitions():
-            intersect = self.free_names & partition
+            intersect = (iagent.free_names & oagent.free_names) & partition
             assert len(intersect) <= 1
             if len(intersect) == 0:
-                free_name, = partition
+                free_name = Name.fresh(self.names, 'u')
             else:
                 free_name, = intersect
             for bound_name in partition - {free_name}:
@@ -62,9 +62,11 @@ class Scope(base.Scope):
         and isinstance(i, o.inverse) and o.subject not in s.bindings \
         and s.bindings & P.free_names == frozenset():
             sigma = self.construct_sigma(i, o)
-            assert bindings <= sigma.keys() <= bindings | s.bindings
-            ret = base.Match(Scope(s.bindings | bindings, base.Composition({P, Q, r})), sigma)
-            ret.freeze = False
+            if bindings <= sigma.keys() <= bindings | s.bindings:
+                ret = base.Match(Scope(s.bindings | bindings, base.Composition({P, Q, r})), sigma)
+                ret.freeze = False
+            else:
+                ret = None
         else:
             ret = None
         self.freeze = False
@@ -107,14 +109,18 @@ class Scope(base.Scope):
             return None
 
 
-    def reduce(self):
-        agent = self.reduction = self.agent.reduce()
+    def reduce(self, matches: dict = {}) -> Agent:
+        agent = self.reduction = self.agent.reduce(matches)
         bindings = self.bindings
 
         # NOTE: (x)(y)(P) == (xy)(P)
         if isinstance(agent, Scope):
             bindings |= agent.bindings
             agent = agent.agent
+
+        # NOTE: ()(P) == P
+        if not bindings:
+            return agent.reduce(matches)
 
         if isinstance(agent, base.Composition):
 

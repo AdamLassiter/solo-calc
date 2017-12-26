@@ -15,24 +15,17 @@ class Match(base.Match):
         assert isinstance(agent, base.Scope)
 
         self.agent = agent
+        self.agent.bindings -= matches.keys()
         self.matches = matches
 
 
     def __str__(self) -> str:
         return '%s{%s}' % (self.agent, ', '.join(['%s/%s' % (value, key)
                                                  for key, value in self.matches.items()]))
-
-
-    def reduce(self) -> Agent:
-        agent = self.agent
-        agent.bindings -= frozenset(self.matches.keys())
-
-        for name in self.names:
-            for key, value in self.matches.items():
-                if key == name:
-                    name.fusion = value
-
-        return agent.reduce()
+    
+    
+    def reduce(self, matches: dict = {}) -> Agent:
+        return self.agent.reduce(dict(matches, **self.matches))
 
 
 base.Match = Match

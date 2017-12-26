@@ -20,8 +20,8 @@ class Composition(base.Composition):
         return '(%s)' % (' | '.join(map(str, self.agents)))
 
 
-    def reduce(self) -> Agent:
-        agents = frozenset(agent.reduce() for agent in self.agents)
+    def reduce(self, matches: dict = {}) -> Agent:
+        agents = frozenset(agent.reduce(matches) for agent in self.agents)
         rescope = frozenset()
 
         # NOTE: ((a | b) | c) == (a | (b | c)) -> (a | b | c)

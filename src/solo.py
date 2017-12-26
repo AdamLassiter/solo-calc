@@ -19,10 +19,10 @@ class Solo(base.Solo):
     def __str__(self) -> str:
         return ' '.join(map(str, self.objects))
 
-    def reduce(self) -> Agent:
-        return type(self)(Name(self.subject),
-                          tuple((Name(obj.fusion if obj.fusion is not None else obj)
-                                      for obj in self.objects)))
+    def reduce(self, matches: dict = {}) -> Agent:
+        subject =  Name(matches.get(self.subject, self.subject))
+        objects = tuple(Name(matches.get(name, name)) for name in self.objects)
+        return type(self)(subject, objects)
 
     @property
     def names(self) -> frozenset:
