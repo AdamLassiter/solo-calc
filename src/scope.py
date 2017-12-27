@@ -42,22 +42,22 @@ class Scope(base.Scope):
         return sigma
 
 
-    def outer_outer(self, i: base.Solo, o: base.Solo) -> Agent:
-        agent, bindings = self.reduction, self.bindings
+    def outer_outer(self, c: base.Composition, i: base.Solo, o: base.Solo) -> Agent:
+        bindings = self.bindings
         if i.subject == o.subject and i.arity == o.arity and isinstance(i, o.inverse):
-            P = base.Composition(agent.agents - {i, o})
+            P = base.Composition(c.agents - {i, o})
             sigma = self.construct_sigma(i, o)
             return base.Match(Scope(bindings, P), sigma)
         else:
             return None
 
 
-    def outer_inner(self, i: base.Solo, r: Agent, s: Agent, c: base.Composition,
-                    o: base.Solo) -> Agent:
-        agent, bindings = self.reduction, self.bindings
+    def outer_inner(self, c: base.Composition, i: base.Solo, r: Agent, s: Agent,
+                    c1: base.Composition, o: base.Solo) -> Agent:
+        bindings = self.bindings
         self.freeze = True
-        P = base.Composition(agent.agents - {i, r})
-        Q = base.Composition(c.agents - {o})
+        P = base.Composition(c.agents - {i, r})
+        Q = base.Composition(c1.agents - {o})
         if i.subject == o.subject and i.arity == o.arity \
         and isinstance(i, o.inverse) and o.subject not in s.bindings \
         and not s.bindings & P.free_names - bindings:
@@ -73,11 +73,12 @@ class Scope(base.Scope):
         return ret
 
 
-    def inner_inner(self, r1: Agent, s1: Agent, c1: base.Composition, i: base.Solo,
-                    r2: Agent, s2: Agent, c2: base.Composition, o: base.Solo) -> Agent:
-        agent, bindings = self.reduction, self.bindings
+    def inner_inner(self, c: base.Composition, r1: Agent, s1: Agent, c1: base.Composition,
+                    i: base.Solo, r2: Agent, s2: Agent, c2: base.Composition,
+                    o: base.Solo) -> Agent:
+        bindings = self.bindings
         self.freeze = True
-        P = base.Composition(agent.agents - {r1, r2})
+        P = base.Composition(c.agents - {r1, r2})
         Q = base.Composition(c1.agents - {i})
         R = base.Composition(c2.agents - {o})
         binds = s1.bindings | s2.bindings
@@ -96,11 +97,11 @@ class Scope(base.Scope):
         return ret
 
 
-    def inner_fusion(self, r: Agent, s: Agent, c: base.Composition,
+    def inner_fusion(self, c: base.Composition, r: Agent, s: Agent, c1: base.Composition,
                      i: base.Solo, o: base.Solo) -> Agent:
-        agent, bindings = self.reduction, self.bindings
-        P = base.Composition(agent.agents - {r})
-        Q = base.Composition(c.agents - {i, o})
+        bindings = self.bindings
+        P = base.Composition(c.agents - {r})
+        Q = base.Composition(c1.agents - {i, o})
         if i.subject == o.subject and i.arity == o.arity and isinstance(i, o.inverse):
             sigma = self.construct_sigma(i, o)
             assert bindings <= sigma.keys() <= bindings | s.bindings
@@ -116,68 +117,75 @@ class Scope(base.Scope):
         # NOTE: (x)(y)(P) == (xy)(P)
         if isinstance(agent, Scope):
             bindings |= agent.bindings
-            agent = agent.agent
+            agent = self.reduction = agent.agent
 
         # NOTE: ()(P) == P
         if not bindings:
             return agent.reduce(matches)
+ 
+        for Io in base.Solo.types:
 
-        if isinstance(agent, base.Composition):
+            # NOTE: (z)(̅u x | u y | P) -> Pσ
+            for agents in ((c, i, o)
+                           for c in typefilter(base.Composition, {agent})
+                           for i in typefilter(Io, c.agents)
+                           for o in typefilter(Io.inverse, c.agents)):
+                ret = self.outer_outer(*agents)
+                if ret:
+                    return ret
 
-            for Io in base.Solo.types:
+            # NOTE: (z)(P | !(w)(̅u x | u y | Q)) ->
+            #       (w)(P | Q |  !(w)(̅u x | u y | Q))σ
+            for agents in ((c, r, s, c1, i, o)
+                           for c in typefilter(base.Composition, {agent})
+                           for r in typefilter(base.Replication, c.agents)
+                           for s in typefilter(Scope, r.agents)
+                           for c1 in typefilter(base.Composition, s.agents)
+                           for i in typefilter(Io, c1.agents)
+                           for o in typefilter(Io.inverse, c1.agents)):
+                ret = self.inner_fusion(*agents)
+                if ret:
+                    return ret
 
-                # NOTE: (z)(̅u x | u y | P) -> Pσ
-                for agents in ((i, o)
-                               for i in typefilter(Io, agent.agents)
-                               for o in typefilter(Io.inverse, agent.agents)):
-                    ret = self.outer_outer(*agents)
-                    if ret:
-                        return ret
+            # NOTE: (z)(P | !(v)(u x | Q) | !(w)(̅u x | R)) ->
+            #       (vw)(P | Q | R | !(v)(u x | Q) | !(w)(̅u x | R))σ
+            for agents in ((c, r1, s1, c1, i, r2, s2, c2, o)
+                           for c in typefilter(base.Composition, {agent})
+                           for r1 in typefilter(base.Replication, agent.agents)
+                           for s1 in typefilter(Scope, r1.agents)
+                           for c1 in typefilter(base.Composition, s1.agents)
+                           for i in typefilter(Io, c1.agents)
+                           for r2 in typefilter(base.Replication, agent.agents - {r1})
+                           for s2 in typefilter(Scope, r2.agents)
+                           for c2 in typefilter(base.Composition, s2.agents)
+                           for o in typefilter(Io.inverse, c2.agents)):
+                ret = self.inner_inner(*agents)
+                if ret:
+                    return ret
 
-                # NOTE: (z)(P | !(v)(u x | Q) | !(w)(̅u x | R)) ->
-                #       (vw)(P | Q | R | !(v)(u x | Q) | !(w)(̅u x | R))σ
-                for agents in ((r1, s1, c1, i, r2, s2, c2, o)
-                               for r1 in typefilter(base.Replication, agent.agents)
-                               for s1 in typefilter(Scope, r1.agents)
-                               for c1 in typefilter(base.Composition, s1.agents)
-                               for i in typefilter(Io, c1.agents)
-                               for r2 in typefilter(base.Replication, agent.agents - {r1})
-                               for s2 in typefilter(Scope, r2.agents)
-                               for c2 in typefilter(base.Composition, s2.agents)
-                               for o in typefilter(Io.inverse, c2.agents)):
-                    ret = self.inner_inner(*agents)
-                    if ret:
-                        return ret
-
-                # NOTE: (z)(P | !(w)(̅u x | u y | Q)) ->
-                #       (w)(P | Q |  !(w)(̅u x | u y | Q))σ
-                for agents in ((r, s, c, i, o)
-                               for r in typefilter(base.Replication, agent.agents)
-                               for s in typefilter(Scope, r.agents)
-                               for c in typefilter(base.Composition, s.agents)
-                               for i in typefilter(Io, c.agents)
-                               for o in typefilter(Io.inverse, c.agents)):
-                    ret = self.inner_fusion(*agents)
-                    if ret:
-                        return ret
-
-                # NOTE: (z)(̅u x | !(w)(u x | Q) | P) -> (w)(P | Q | !(w)(u x | Q)σ
-                for agents in ((i, r, s, c, o)
-                               for i in typefilter(Io, agent.agents)
-                               for r in typefilter(base.Replication, agent.agents)
-                               for s in typefilter(Scope, r.agents)
-                               for c in typefilter(base.Composition, s.agents)
-                               for o in typefilter(Io.inverse, c.agents)):
-                    ret = self.outer_inner(*agents)
-                    if ret:
-                        return ret
-        
+            # NOTE: (z)(̅u x | !(w)(u x | Q) | P) -> (w)(P | Q | !(w)(u x | Q)σ
+            for agents in ((c, i, r, s, c1, o)
+                           for c in typefilter(base.Composition, {agent})
+                           for i in typefilter(Io, agent.agents)
+                           for r in typefilter(base.Replication, agent.agents)
+                           for s in typefilter(Scope, r.agents)
+                           for c1 in typefilter(base.Composition, s.agents)
+                           for o in typefilter(Io.inverse, c1.agents)):
+                ret = self.outer_inner(*agents)
+                if ret:
+                    return ret
+    
         if bindings:
             return Scope(bindings, agent)
         elif agent:
             return agent
         else:
             return base.Inaction()
+
+
+    @staticmethod
+    def id(agent: Agent) -> Agent:
+        return Scope(frozenset(), agent)
 
 
     @property

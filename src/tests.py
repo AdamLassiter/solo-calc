@@ -22,7 +22,7 @@ class TestSoloCalculus(unittest.TestCase):
         reduction = build_agent('(u0)(!(x)(p x | ^u0 q y) | !(q y | (w1 w0)u0 w1 w0))')
         print(agent, '->', reduce(agent))
         self.assertTrue(reduction.equals(reduce(agent)))
-       
+
 
     def test_cross_replicator(self):
         print('\ntesting cross-replicator fusion')
@@ -34,19 +34,19 @@ class TestSoloCalculus(unittest.TestCase):
 
     def test_inter_replicator(self):
         print('\ntesting inter-replicator fusion')
-        agent = build_agent('(x y)(!(x)(u x | 0) | !(y)(^u y | 0) | p x y)')
-        reduction = build_agent('(!(x)(u x | 0) | !(y)(^u y | 0) | p u0 u0)')
+        agent = build_agent('(x)(!(y)(u x | ^u y | p x y))')
+        reduction = build_agent('(!(y)(u x | ^u y | p x y) | p u0 u0)')
         print(agent, '->', reduce(agent))
         self.assertTrue(reduction.equals(reduce(agent)))
-       
+
 
     def test_multi_replicator(self):
         print('\ntesting multi-replicator fusion')
-        agent = build_agent('(x)(p p | !(y)(u x | ^u y | p x y))')
-        reduction = build_agent('(p p | p u0 u0 | !(y)(u x | ^u y | p x y))')
+        agent = build_agent('(x y)(!(x)(u x) | !(y)(^u y) | p x y)')
+        reduction = build_agent('(!(x)(u x) | !(y)(^u y) | p u0 u0)')
         print(agent, '->', reduce(agent))
         self.assertTrue(reduction.equals(reduce(agent)))
-
+        
 
 if __name__ == '__main__':
     unittest.main()

@@ -27,5 +27,10 @@ class Match(base.Match):
     def reduce(self, matches: dict = {}) -> Agent:
         return self.agent.reduce(dict(matches, **self.matches))
 
+    
+    @staticmethod
+    def id(agent: Agent) -> Agent:
+        return Match(agent, dict())
+
 
 base.Match = Match

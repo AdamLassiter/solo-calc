@@ -31,18 +31,17 @@ Renaming functions σ are found as follows:
 from functools import reduce, wraps
 
 
-# Filters a set for a given type -> set<agent_t> or {}
-def typefilter(agent_t: type, agents: frozenset) -> frozenset:
+# Set typefilter: agent_t, set -> set<agent_t> or {}
+def tf(agent_t: type, agents: frozenset) -> frozenset:
     return frozenset(filter(lambda x: isinstance(x, agent_t), agents))
 
 
-# Non-empty typefilter -> nonempty set<agent_t>
-def netf(agent_t: type, agent) -> frozenset:
-    tf = typefilter(agent_t, agent.agents)
-    if tf:
-        return tf
-    else:
-        return agent_t.id(agent.agents)
+# Non-empty typefilter: agent_t, set -> nonempty set<agent_t>
+def netf(agent_t: type, agents: frozenset) -> frozenset:
+    return frozenset({agent if isinstance(agent, agent_t) else agent_t.id(agent)
+                      for agent in agents}) - {None}
+
+typefilter = netf
 
 
 def _rebind(func):
@@ -82,7 +81,7 @@ class Agent(object):
         raise NotImplementedError
 
     @staticmethod
-    def id(self, agents: frozenset) -> frozenset:
+    def id(agent: object) -> object:
         raise NotImplementedError
 
     @staticmethod

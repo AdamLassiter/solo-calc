@@ -24,14 +24,6 @@ class Composition(base.Composition):
         agents = frozenset(agent.reduce(matches) for agent in self.agents)
         rescope = frozenset()
 
-        # NOTE: ((a | b) | c) == (a | (b | c)) -> (a | b | c)
-        for cagent in typefilter(Composition, agents):
-            agents -= {cagent}
-            agents |= cagent.agents
-
-        # NOTE: (0 | P) -> P
-        agents -= typefilter(base.Inaction, agents)
-
         # NOTE: ((x)P | Q) -> (x)(P | Q)
         for sagent in typefilter(base.Scope, agents):
             rescope |= sagent.bindings - self.free_names
@@ -39,6 +31,14 @@ class Composition(base.Composition):
             if not sagent.bindings:
                 agents -= {sagent}
                 agents |= {sagent.agent}
+
+        # NOTE: (0 | P) -> P
+        agents -= typefilter(base.Inaction, agents)
+
+        # NOTE: ((a | b) | c) == (a | (b | c)) -> (a | b | c)
+        for cagent in typefilter(Composition, agents):
+            agents -= {cagent}
+            agents |= cagent.agents
 
         if rescope:
             return base.Scope(rescope, Composition(agents))
@@ -49,6 +49,11 @@ class Composition(base.Composition):
             return agent
         else:
             return base.Inaction()
+
+
+    @staticmethod
+    def id(agent: Agent) -> Agent:
+        return Composition(frozenset({agent}))
  
 
 base.Composition = Composition

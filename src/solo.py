@@ -24,6 +24,11 @@ class Solo(base.Solo):
         objects = tuple(Name(matches.get(name, name)) for name in self.objects)
         return type(self)(subject, objects)
 
+    @staticmethod
+    def id(agent: Agent) -> Agent:
+        # This is the best we can do...
+        return None
+
     @property
     def names(self) -> frozenset:
         return frozenset({self.subject} | {obj for obj in self.objects})

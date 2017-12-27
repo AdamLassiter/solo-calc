@@ -53,6 +53,12 @@ class Replication(base.Replication):
             return Replication(agent)
         else:
             return base.Inaction()
+
+    
+    @staticmethod
+    def id(agent: Agent) -> Agent:
+        # This is the best we can do...
+        return None
  
 
 base.Replication = Replication

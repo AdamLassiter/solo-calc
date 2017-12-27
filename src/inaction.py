@@ -15,5 +15,9 @@ class Inaction(base.Inaction):
     def reduce(self, matches: dict = {}) -> Agent:
         return Inaction()
 
+    @staticmethod
+    def id(agent: Agent) -> Agent:
+        return Inaction()
+
 
 base.Inaction = Inaction
