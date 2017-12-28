@@ -12,7 +12,7 @@ Executing the [tests.py](/src/tests.py) file runs all available unit tests, whil
 * Webbrowser with d3.js support
 
 ## Contributing
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on code of conduct, and the process for submitting pull requests.
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on code of conduct and the process for submitting pull requests.
 
 ## Authors
 This project remains the sole work of Adam Lassiter (https://github.com/AdamLassiter) (http://people.bath.ac.uk/atl35/).  
