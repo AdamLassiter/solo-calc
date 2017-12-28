@@ -1,15 +1,47 @@
 #! /usr/bin/env python3
 
 from functools import reduce
-from multiset import Multiset as multiset
+from multiset import FrozenMultiset as multiset
+
+set = frozenset
 
 
-class Node:
+def typefilter(iterable, obj_t: type) -> set:
+    return set(filter(lambda obj: isinstance(obj, obj_t), iterable))
+
+
+class pair(tuple):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        assert len(self) == 2
+
+
+class triple(tuple):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        assert len(self) == 3
+
+
+class Map(dict):
+
+    @property
+    def dom(self) -> set:
+        return set(self.keys())
+    
+    @property
+    def ran(self) -> set:
+        return set(self.values())
+
+
+class Node(str):
     """
     A node N represents a named particle in a solo.
     """
 
     def __init__(self, name: str = None) -> None:
+        super().__init__(name)
         self.name = name
 
 
@@ -23,12 +55,6 @@ class Edge(tuple):
         super().__init__(*args, **kwargs)
         for node in self:
             assert isinstance(node, Node)
-        if kwargs.get('input', False):
-            self.kind = 'input'
-        elif kwargs.get('output', False):
-            self.kind = 'output'
-        else:
-            self.kind = 'irrelevant'
         self.subject: Node = self[0]
         self.objects = self[1:]
         self.arity = len(self.objects)
@@ -36,6 +62,16 @@ class Edge(tuple):
     @property
     def nodes(self) -> set:
         return {node for node in self}
+
+
+class Input(Edge):
+    pass
+
+
+class Output(Edge):
+    inverse = Input
+
+Input.inverse = Output
 
 
 class Graph(multiset):
@@ -53,13 +89,14 @@ class Graph(multiset):
         return reduce(lambda a, b: a | b, (edge.nodes for edge in self))
 
 
-class Box:
+class Box(pair):
     """
     A box B is a pair <G, S> where G is a graph and S <= nodes[G].
     S is called the internal nodes of B and nodes[G]\S the principal nodes.
     """
 
     def __init__(self, graph: Graph, nodes: set) -> None:
+        super().__init__(graph, nodes)
         for node in nodes:
             assert isinstance(node, Node)
         assert nodes <= graph.nodes
@@ -102,24 +139,67 @@ class Boxes(multiset):
         return reduce(lambda a, b: a | b, (box.internals for box in self))
 
 
-class Diagram:
+class Diagram(triple):
     """
     A solo diagram SD is a triple (G, M, l) where:
-        G is a graph, or finite multiset of edges,
-        M is a finite multiset of boxes,
-        l is a labelling of nodes
+        G is a graph: graph = multiset<node>,
+        M is a finite multiset of boxes: box = pair<graph, set<node>>,
+        l is a labelling of nodes: labelling = map<node, node>
     """
 
-    def __init__(self, graph: Graph, boxes: Boxes, l: dict) -> None:
+    def __init__(self, graph: Graph, boxes: Boxes, l: Map) -> None:
+        super().__init__(graph, boxes, l)
         for box in boxes:
             assert (graph.nodes - box.internals).isdisjoint(box.internals)
-        for key, value in l:
-            assert isinstance(key, Node) and isinstance(value, Node)
-            assert key in graph.nodes | boxes.principals
+        for node in l.dom:
+            assert isinstance(node, Node)
+            assert node in graph.nodes | boxes.principals
+        for node in l.ran:
+            assert isinstance(node, Node) 
         self.graph = graph
         self.boxes = boxes
         self.l = l
 
+    def construct_sigma(self, alpha: Input, beta: Output) -> Map:
+        if alpha.subject == beta.subject and alpha.arity == beta.arity:
+            sigma = Map()
+            raise NotImplementedError
+            assert sigma.ran & sigma.dom == set()
+            assert sigma.dom & self.l.dom == set()
+            return sigma
+
+    def reduce(self):
+        # TODO: Can be simplified with itertools.chain, map, filter
+        # NOTE: edge-edge reduction
+        for alpha, beta in ((alpha, beta)
+                            for alpha in typefilter(self.graph.nodes, Input)
+                            for beta in  typefilter(self.graph.nodes, Output)):
+            sigma = self.construct_sigma(alpha, beta)
+        
+        # NOTE: edge-box reduction
+        for alpha, beta in ((alpha, beta)
+                            for Io in {Input, Output}
+                            for alpha in typefilter(self.graph.nodes, Io)
+                            for box in self.boxes
+                            for beta in typefilter(box.graph.nodes, Io.inverse)):
+            sigma = self.construct_sigma(alpha, beta)
+
+        # NOTE: box-box reduction
+        for alpha, beta in ((alpha, beta)
+                            for Io in {Input, Output}
+                            for box1 in self.boxes
+                            for alpha in typefilter(box1.graph.nodes, Io)
+                            for box2 in self.boxes - {box1}
+                            for beta in typefilter(box2.graph.nodes, Io.inverse)):
+            sigma = self.construct_sigma(alpha, beta)
+        
+        # NOTE: internal box reduction
+        for alpha, beta in ((alpha, beta)
+                            for Io in {Input, Output}
+                            for box in self.boxes
+                            for alpha in typefilter(box.graph.nodes, Io)
+                            for beta in typefilter(box.graph.nodes, Io.inverse)):
+            sigma = self.construct_sigma(alpha, beta)
 
 if __name__ == "__main__":
     pass
