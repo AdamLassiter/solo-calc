@@ -10,6 +10,7 @@ def typefilter(iterable, obj_t: type) -> set:
     return set(filter(lambda obj: isinstance(obj, obj_t), iterable))
 
 
+
 class pair(tuple):
 
     def __init__(self, *args, **kwargs):
@@ -17,11 +18,13 @@ class pair(tuple):
         assert len(self) == 2
 
 
+
 class triple(tuple):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         assert len(self) == 3
+
 
 
 class Node(str):
@@ -32,6 +35,7 @@ class Node(str):
     def __init__(self, name: str = None) -> None:
         super().__init__(name)
         self.name = name
+
 
 
 class Edge(tuple):
@@ -48,19 +52,21 @@ class Edge(tuple):
         self.objects = self[1:]
         self.arity = len(self.objects)
 
+
     @property
     def nodes(self) -> set:
         return {node for node in self}
 
 
+
 class Input(Edge):
     pass
-
 
 class Output(Edge):
     inverse = Input
 
 Input.inverse = Output
+
 
 
 class Graph(multiset):
@@ -73,9 +79,11 @@ class Graph(multiset):
         for edge in self:
             assert isinstance(edge, Edge)
 
+
     @property
     def nodes(self) -> set:
         return reduce(lambda a, b: a | b, (edge.nodes for edge in self))
+
 
 
 class Box(pair):
@@ -92,17 +100,21 @@ class Box(pair):
         self.graph = graph
         self._nodes = nodes
 
+
     @property
     def nodes(self) -> set:
         return self.graph.nodes
+
 
     @property
     def internals(self) -> set:
         return self._nodes
 
+
     @property
     def principals(self) -> set:
         return self.nodes - self.internals
+
 
 
 class Boxes(multiset):
@@ -115,13 +127,16 @@ class Boxes(multiset):
         for box in self:
             assert isinstance(box, Box)
 
+
     @property
     def nodes(self) -> set:
         return reduce(lambda a, b: a | b, (box.nodes for box in self))
-    
+
+
     @property
     def internals(self) -> set:
         return reduce(lambda a, b: a | b, (box.internals for box in self))
+
 
     @property
     def principals(self) -> set:
@@ -136,6 +151,7 @@ class Map(dict):
             return type(obj)(map(self, obj))
         else:
             return self.get(obj, obj)
+
 
     @property
     def dom(self) -> set:
