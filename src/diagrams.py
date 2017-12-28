@@ -24,21 +24,10 @@ class triple(tuple):
         assert len(self) == 3
 
 
-class Map(dict):
-
-    @property
-    def dom(self) -> set:
-        return set(self.keys())
-    
-    @property
-    def ran(self) -> set:
-        return set(self.values())
-
-
 class Node(str):
-    """
+    '''
     A node N represents a named particle in a solo.
-    """
+    '''
 
     def __init__(self, name: str = None) -> None:
         super().__init__(name)
@@ -46,10 +35,10 @@ class Node(str):
 
 
 class Edge(tuple):
-    """
+    '''
     An edge E is a tuple of nodes.
     There are two kinds of edges: input edges and output edges.
-    """
+    '''
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -75,9 +64,9 @@ Input.inverse = Output
 
 
 class Graph(multiset):
-    """
+    '''
     A graph G is a finite multiset of edges.
-    """
+    '''
     
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -90,10 +79,10 @@ class Graph(multiset):
 
 
 class Box(pair):
-    """
+    '''
     A box B is a pair <G, S> where G is a graph and S <= nodes[G].
     S is called the internal nodes of B and nodes[G]\S the principal nodes.
-    """
+    '''
 
     def __init__(self, graph: Graph, nodes: set) -> None:
         super().__init__(graph, nodes)
@@ -117,9 +106,9 @@ class Box(pair):
 
 
 class Boxes(multiset):
-    """
+    '''
     A typechecked multiset of boxes, M.
-    """
+    '''
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -139,13 +128,33 @@ class Boxes(multiset):
         return reduce(lambda a, b: a | b, (box.internals for box in self))
 
 
+
+class Map(dict):
+
+    def __call__(self, obj: multiset) -> multiset:
+        if hasattr(obj, '__iter__'):
+            return type(obj)(map(self, obj))
+        else:
+            return self.get(obj, obj)
+
+    @property
+    def dom(self) -> set:
+        return set(self.keys())
+
+
+    @property
+    def ran(self) -> set:
+        return set(self.values())
+
+
+
 class Diagram(triple):
-    """
+    '''
     A solo diagram SD is a triple (G, M, l) where:
         G is a graph: graph = multiset<node>,
         M is a finite multiset of boxes: box = pair<graph, set<node>>,
         l is a labelling of nodes: labelling = map<node, node>
-    """
+    '''
 
     def __init__(self, graph: Graph, boxes: Boxes, l: Map) -> None:
         super().__init__(graph, boxes, l)
@@ -160,6 +169,8 @@ class Diagram(triple):
         self.boxes = boxes
         self.l = l
 
+    
+    # TODO: Implement sigma construction
     def construct_sigma(self, alpha: Input, beta: Output) -> Map:
         if alpha.subject == beta.subject and alpha.arity == beta.arity:
             sigma = Map()
@@ -168,31 +179,57 @@ class Diagram(triple):
             assert sigma.dom & self.l.dom == set()
             return sigma
 
+    
+    # TODO: Implement rho construction
+    def construct_rho(self, internals: set) -> Map:
+        raise NotImplementedError
+
+
     def reduce(self):
-        # TODO: Can be simplified with itertools.chain, map, filter
         # NOTE: edge-edge reduction
         for alpha, beta in ((alpha, beta)
                             for alpha in typefilter(self.graph.nodes, Input)
                             for beta in  typefilter(self.graph.nodes, Output)):
             sigma = self.construct_sigma(alpha, beta)
-        
+            graph = Graph(self.graph - {alpha, beta})
+            boxes = self.boxes
+            l = Map({k:v for k, v in self.l.items() if k not in sigma.keys()})
+            return Diagram(sigma(graph), sigma(boxes), l)
+
         # NOTE: edge-box reduction
-        for alpha, beta in ((alpha, beta)
-                            for Io in {Input, Output}
-                            for alpha in typefilter(self.graph.nodes, Io)
-                            for box in self.boxes
-                            for beta in typefilter(box.graph.nodes, Io.inverse)):
+        for alpha, beta, box in ((alpha, beta, box)
+                                 for Io in {Input, Output}
+                                 for alpha in typefilter(self.graph.nodes, Io)
+                                 for box in self.boxes
+                                 for beta in typefilter(box.graph.nodes, Io.inverse)):
             sigma = self.construct_sigma(alpha, beta)
+            rho = self.construct_rho(box.internals)
+            ag = self.graph - {alpha}
+            bg = box.graph - {beta}
+            graph = Graph(ag + rho(bg))
+            boxes = self.boxes
+            l = Map({k:v for k, v in self.l.items()
+                     if k in sigma(graph).nodes | sigma(boxes).nodes})
+            return Diagram(sigma(graph), sigma(boxes), l)
 
         # NOTE: box-box reduction
-        for alpha, beta in ((alpha, beta)
-                            for Io in {Input, Output}
-                            for box1 in self.boxes
-                            for alpha in typefilter(box1.graph.nodes, Io)
-                            for box2 in self.boxes - {box1}
-                            for beta in typefilter(box2.graph.nodes, Io.inverse)):
+        for alpha, beta, abox, bbox in ((alpha, beta, abox, bbox)
+                                        for Io in {Input, Output}
+                                        for abox in self.boxes
+                                        for alpha in typefilter(abox.graph.nodes, Io)
+                                        for bbox in self.boxes - {abox}
+                                        for beta in typefilter(bbox.graph.nodes, Io.inverse)):
             sigma = self.construct_sigma(alpha, beta)
-        
+            rho = self.construct_rho(abox.internals | bbox.internals)
+            g = self.graph
+            ag = abox.graph - {alpha}
+            bg = bbox.graph - {beta}
+            graph = Graph(g + rho(ag) + rho(bg))
+            boxes = self.boxes
+            l = Map({k:v for k, v in self.l.items()
+                     if k in sigma(graph).nodes | sigma(boxes).nodes})
+            return Diagram(sigma(graph), sigma(boxes), l)
+
         # NOTE: internal box reduction
         for alpha, beta in ((alpha, beta)
                             for Io in {Input, Output}
@@ -200,6 +237,16 @@ class Diagram(triple):
                             for alpha in typefilter(box.graph.nodes, Io)
                             for beta in typefilter(box.graph.nodes, Io.inverse)):
             sigma = self.construct_sigma(alpha, beta)
+            rho = self.construct_rho(box.internals)
+            ag = self.graph
+            bg = box.graph - {alpha, beta}
+            graph = Graph(ag + rho(bg))
+            boxes = self.boxes
+            l = Map({k:v for k, v in self.l.items()
+                     if k in sigma(graph).nodes | sigma(boxes).nodes})
+            return Diagram(sigma(graph), sigma(boxes), l)
+
+
 
 if __name__ == "__main__":
     pass
