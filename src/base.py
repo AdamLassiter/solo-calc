@@ -23,12 +23,13 @@ Fusions are performed as follows:
     (x)(̅u x | u y | P) -> P{y / x}
 
 Renaming functions σ are found as follows:
-    Construct graph(s) G, H ... by treating all names as nodes and the pairs x̃, ỹ as edges
-    Check there is at most one free node fn per connected graph G
-    Define σ[bn] := fn ∀ bn ϵ G
+    * Construct graph(s) G, H ... by treating all names as graph nodes and the pairs x̃, ỹ as
+      graph edges
+    * Check there is at most one free node fn per connected graph G
+    * Define σ[bn] := fn ∀ bn ϵ G
 '''
 
-from functools import reduce, wraps
+from functools import reduce
 
 
 # Set typefilter: agent_t, set -> set<agent_t> or {}
@@ -44,114 +45,63 @@ def netf(agent_t: type, agents: frozenset) -> frozenset:
 typefilter = netf
 
 
-def _rebind(func):
-    @wraps(func)
-    def wrapper(self, *args, **kwargs):
-        ret = func(self, *args, **kwargs)
-        if not self.freeze:
-            for agent in self.agents:
-                agent.bound_names = self.bound_names
-        return ret
-    return wrapper
 
-
-class Agent(object):
-
-    def __init__(self) -> None:
-        self._freeze = False
-        self._agents = frozenset()
-        self._bound_names = frozenset()
-        self._bindings = frozenset()
+class Agent(frozenset):
 
     def equals(self, other) -> bool:
-        return self._bindings == other._bindings and self <= other and other <= self
+        return type(self) == type(other) \
+           and getattr(self, 'bindings', None) == getattr(other, 'bindings', None) \
+           and self <= other and other <= self
 
     def __le__(self, other) -> bool:
         return all(any(mine.equals(yours)
-                       for yours in other.agents)
-                  for mine in self.agents)
+                       for yours in other)
+                  for mine in self)
 
     def __str__(self) -> str:
         raise NotImplementedError
 
     def __repr__(self) -> str:
-        return self.__str__()
+        return '%s [%s]' % (type(self), str(self))
 
-    def reduce(self, matches: dict = {}) -> object:
+    def reduce(self, matches: dict = {}, bindings: frozenset = frozenset()) -> object:
         raise NotImplementedError
 
+    def _attrs(self, attr: str) -> frozenset:
+       return reduce(frozenset.union,
+                     map(lambda x: frozenset(getattr(x, attr)), self),
+                     frozenset())
+    
     @staticmethod
     def id(agent: object) -> object:
         raise NotImplementedError
 
-    @staticmethod
-    def _attrs(s: frozenset, attr: str) -> frozenset:
-        return frozenset(reduce(frozenset.union,
-                                map(lambda x: frozenset(getattr(x, attr)), s),
-                                frozenset()))
-
     @property
     def agent(self) -> object:
-        if len(self._agents) == 1:
-            agent, = self.agents
+        if len(self) == 1:
+            agent, *_ = self
             return agent
-        elif len(self.agents) == 0:
+        elif len(self) == 0:
             return None
         else:
             raise TypeError('Ambiguous: agent contains multiple children')
 
-    @agent.setter
-    def agent(self, value: object):
-        if len(self.agents) <= 1:
-            self.agents = frozenset({value})
-        else:
-            raise TypeError('Ambiguous: agent contains multiple children')
-
-    @property
-    def freeze(self) -> bool:
-       return self._freeze
-
-    @freeze.setter
-    def freeze(self, value: bool) -> bool:
-        self._freeze = value
-        for agent in self.agents:
-            agent.freeze = value
-
-    @property
-    def agents(self) -> frozenset:
-        return self._agents
-
-    @agents.setter
-    @_rebind
-    def agents(self, value: frozenset) -> None:
-        if self._agents:
-            raise Exception('Mutation of agents set')
-        self._agents = value
-
     @property
     def names(self) -> frozenset:
-        return self._attrs(self._agents, 'names')
-    
-    @property
-    def free_names(self) -> frozenset:
-        return self.names - self.bound_names
+        return self._attrs('names')
 
-    @property
-    def bound_names(self) -> frozenset:
-        return self._bound_names
-
-    @bound_names.setter
-    @_rebind
-    def bound_names(self, value: frozenset) -> None:
-        self._bound_names = value
+    def free_names(self, bindings: frozenset = frozenset()) -> frozenset:
+        return self.names - bindings
 
 
 class Name(str):
 
     def __new__(cls, *args):
         ret = super().__new__(cls, *args)
-        ret.fusion = None
         return ret
+
+    def __copy__(self):
+        return type(self)(self)
 
     @classmethod
     def fresh(cls, names: frozenset, name_hint: str) -> object:

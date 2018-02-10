@@ -46,7 +46,7 @@ def build_inaction(match, names: dict) -> Inaction:
 
 composition = re.compile(r'\s?\((?<agents>(?<agent>([^|()]|(?<rec>\((?:[^()]++|(?&rec))*\)))+)(\|(?&agents))?)\)\s?')
 def build_composition(match, names: dict) -> Composition:
-    agents = frozenset(build_agent(string, names) for string in match.captures('agent'))
+    agents = [build_agent(string, names) for string in match.captures('agent')]
     return Composition(agents)
 
 

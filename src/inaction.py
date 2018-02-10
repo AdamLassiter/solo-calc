@@ -12,7 +12,7 @@ class Inaction(base.Inaction):
     def __bool__(self) -> bool:
         return False
 
-    def reduce(self, matches: dict = {}) -> Agent:
+    def reduce(self, matches: dict = {}, bindings: frozenset = frozenset()) -> Agent:
         return Inaction()
 
     @staticmethod

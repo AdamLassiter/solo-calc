@@ -6,23 +6,32 @@ from base import Agent, Name
 
 class Solo(base.Solo):
 
-    def __init__(self, subject: Name, objects: tuple) -> None:
-        super().__init__()
+    def __new__(typ, subject, objects) -> object:
+        return super().__new__(typ, (subject,) + objects)
 
-        for name in objects:
-            assert isinstance(name, Name)
-
+    def __init__(self, subject: base.Name, objects: tuple) -> None:
         self.subject = subject
         self.objects = objects
-        self.arity = len(objects)
+        self.arity = len(self.objects)
+
+        for name in self.objects:
+            assert isinstance(name, Name)
 
     def __str__(self) -> str:
         return ' '.join(map(str, self.objects))
+    
+    def equals(self, other) -> bool:
+        return type(self) == type(other) \
+           and self.subject == other.subject \
+           and self.objects == other.objects
 
-    def reduce(self, matches: dict = {}) -> Agent:
+    def reduce(self, matches: dict = {}, bindings: frozenset = frozenset()) -> Agent:
         subject =  Name(matches.get(self.subject, self.subject))
         objects = tuple(Name(matches.get(name, name)) for name in self.objects)
-        return type(self)(subject, objects)
+        if not objects:
+            return base.Inaction()
+        else:
+            return type(self)(subject, objects)
 
     @staticmethod
     def id(agent: Agent) -> Agent:

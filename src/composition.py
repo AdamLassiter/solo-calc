@@ -6,31 +6,35 @@ from base import typefilter
 
 
 class Composition(base.Composition):
-
+    
     def __init__(self, agents: frozenset) -> None:
         super().__init__()
-
         for agent in agents:
             assert isinstance(agent, Agent)
 
-        self.agents = agents
-
 
     def __str__(self) -> str:
-        return '(%s)' % (' | '.join(map(str, self.agents)))
+        return '(%s)' % (' | '.join(map(str, self)))
 
 
-    def reduce(self, matches: dict = {}) -> Agent:
-        agents = frozenset(agent.reduce(matches) for agent in self.agents)
+    def __sub__(self, other: frozenset) -> base.Composition:
+        if not isinstance(other, type(self)):
+            other = type(self)(other)
+        ret = type(self)(super().__sub__(other))
+        return ret
+
+
+    def reduce(self, matches: dict = {}, bindings: frozenset = frozenset()) -> Agent:
+        agents = frozenset(agent.reduce(matches, bindings) for agent in self)
         rescope = frozenset()
 
         # NOTE: ((x)P | Q) -> (x)(P | Q)
         for sagent in typefilter(base.Scope, agents):
-            rescope |= sagent.bindings - self.free_names
-            sagent.bindings &= self.free_names
+            rescope |= sagent.bindings - self.free_names(bindings)
+            sagent.bindings &= self.free_names(bindings)
             if not sagent.bindings:
                 agents -= {sagent}
-                agents |= {sagent.agent}
+                agents |= sagent
 
         # NOTE: (0 | P) -> P
         agents -= typefilter(base.Inaction, agents)
@@ -38,7 +42,7 @@ class Composition(base.Composition):
         # NOTE: ((a | b) | c) == (a | (b | c)) -> (a | b | c)
         for cagent in typefilter(Composition, agents):
             agents -= {cagent}
-            agents |= cagent.agents
+            agents |= cagent
 
         if rescope:
             return base.Scope(rescope, Composition(agents))
