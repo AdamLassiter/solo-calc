@@ -30,6 +30,16 @@ Renaming functions σ are found as follows:
 '''
 
 from functools import reduce
+from itertools import permutations
+
+from graph import graph
+from hashdict import hashdict
+
+
+# All pairwise combinations of two sets
+def combinations(a: frozenset, b: frozenset) -> frozenset:
+    a, b = tuple(a), tuple(b)
+    return {zip(x, b) for x in permutations(a, len(b))}
 
 
 # Set typefilter: agent_t, set -> set<agent_t> or {}
@@ -48,33 +58,95 @@ typefilter = netf
 
 class Agent(frozenset):
 
-    def equals(self, other) -> bool:
-        return type(self) == type(other) \
-           and getattr(self, 'bindings', None) == getattr(other, 'bindings', None) \
-           and self <= other and other <= self
+    def equals(self, other: object) -> bool:
+        return bool(self.eq(other, frozenset(), frozenset()))
 
-    def __le__(self, other) -> bool:
-        return all(any(mine.equals(yours)
-                       for yours in other)
-                  for mine in self)
+
+    def eq(self, other: object, self_bindings: frozenset, other_bindings: frozenset) -> frozenset:
+        # Return 'false' for trivial cases
+        if type(self) != type(other) or len(self) != len(other):
+            return frozenset()
+        equalities = frozenset()
+        # For each combination of pairs of sub-agents
+        for combination in combinations(self, other):
+            # Check for equality
+            pairwise_equalities = map(lambda x, y: x.eq(y, self_bindings, other_bindings), 
+                                      *zip(*combination))
+            # Skip combinations where pairs are not equal
+            if not all(pairwise_equalities):
+                continue
+            # For a given combination, start 'fresh' from no known equalities except the
+            # trivial solution (0) == (0) and iteratively add solutions for each pair in
+            # the given combination
+            combination_equalities = frozenset([hashdict()])
+            # Iterate over each pair of agents...
+            for pair_equalities in pairwise_equalities:
+                partial_equalities = frozenset()
+                # ...and their possible equalities, observing all combinations with
+                # existing solutions
+                for extension, solution in combinations(pair_equalities, combination_equalities):
+                    # If an extension and an existing solution don't agree, skip this
+                    # extension-solution pair
+                    for key in extension.keys() & solution.keys():
+                        if extension[key] != solution[key]:
+                            break
+                    # Otherwise save it as a possible partially-extended solution
+                    else:
+                        # 'partial_equalities' holds only the next iteration of solutions,
+                        # i.e. a temporary set containing solutions for (n + 1)-length pairs where
+                        # 'combination_equalities' holds solutions for n-length pairs
+                        partial_equalities |= frozenset([dict(solution, **extension)])
+                # Store successive solutions of increasing numbers of pairs of agents
+                # 'combination_equalities' holds solutions for a (increasing) subset of agents
+                combination_equalities = partial_equalities
+            # Once this has been extended for all pairs, store the new solutions
+            # As such, 'equalities' holds only solutions for equality of all children
+            equalities |= combination_equalities
+        return equalities
+
 
     def __str__(self) -> str:
         raise NotImplementedError
 
+
     def __repr__(self) -> str:
         return '%s [%s]' % (type(self), str(self))
 
+
+    def construct_sigma(self, bindings: frozenset, iagent: object, oagent: object) -> dict:
+        # NOTE: Graph partitioning > naive pairwise cases for intersection
+        g = graph()
+        sigma = dict()
+        for pair in zip(iagent.objects, oagent.objects):
+            g.insert_edge(*pair)
+
+        for partition in g.partitions():
+            intersect = partition - bindings
+            assert len(intersect) <= 1
+            if len(intersect) == 0:
+                free_name = Name.fresh(self.names | bindings, 'u')
+            else:
+                free_name, = intersect
+            for bound_name in partition - {free_name}:
+                sigma[bound_name] = free_name
+
+        return sigma
+
+
     def reduce(self, matches: dict = {}, bindings: frozenset = frozenset()) -> object:
         raise NotImplementedError
+
 
     def _attrs(self, attr: str) -> frozenset:
        return reduce(frozenset.union,
                      map(lambda x: frozenset(getattr(x, attr)), self),
                      frozenset())
     
+
     @staticmethod
     def id(agent: object) -> object:
         raise NotImplementedError
+
 
     @property
     def agent(self) -> object:
@@ -86,12 +158,15 @@ class Agent(frozenset):
         else:
             raise TypeError('Ambiguous: agent contains multiple children')
 
+
     @property
     def names(self) -> frozenset:
         return self._attrs('names')
 
+
     def free_names(self, bindings: frozenset = frozenset()) -> frozenset:
         return self.names - bindings
+
 
 
 class Name(str):
@@ -100,8 +175,6 @@ class Name(str):
         ret = super().__new__(cls, *args)
         return ret
 
-    def __copy__(self):
-        return type(self)(self)
 
     @classmethod
     def fresh(cls, names: frozenset, name_hint: str) -> object:
@@ -111,24 +184,30 @@ class Name(str):
         return cls(name_hint + str(i))
 
 
+
 class Solo(Agent):
     pass
+
 
 
 class Inaction(Agent):
     pass
 
 
+
 class Composition(Agent):
     pass
+
 
 
 class Replication(Agent):
     pass
 
 
+
 class Scope(Agent):
     pass
+
 
 
 class Match(Agent):

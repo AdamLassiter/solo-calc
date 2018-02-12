@@ -59,6 +59,7 @@ class Replication(base.Replication):
     def id(agent: Agent) -> Agent:
         # This is the best we can do...
         return None
- 
+
+
 
 base.Replication = Replication

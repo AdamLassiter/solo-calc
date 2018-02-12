@@ -3,7 +3,6 @@
 import base
 from base import Agent, Name
 from base import typefilter
-from graph import Graph
 
 
 class Scope(base.Scope):
@@ -18,30 +17,15 @@ class Scope(base.Scope):
         super().__init__()
         for binding in bindings:
             assert isinstance(binding, Name)
+    
+    
+    def eq(self, other: Agent, self_bindings: frozenset, other_bindings: frozenset) -> frozenset:
+        return super().eq(other, self_bindings | self.bindings,
+                          other_bindings | getattr(other, 'bindings', frozenset()))
 
 
     def __str__(self) -> str:
         return '(%s)%s' % (' '.join(map(str, self.bindings)), self.agent)
-
-
-    def construct_sigma(self, bindings: frozenset, iagent: Agent, oagent: Agent) -> dict:
-        # NOTE: Graph partitioning > naive pairwise cases for intersection
-        graph = Graph()
-        sigma = dict()
-        for pair in zip(iagent.objects, oagent.objects):
-            graph.insert_edge(*pair)
-
-        for partition in graph.partitions():
-            intersect = partition - bindings
-            assert len(intersect) <= 1
-            if len(intersect) == 0:
-                free_name = Name.fresh(self.names | bindings, 'u')
-            else:
-                free_name, = intersect
-            for bound_name in partition - {free_name}:
-                sigma[bound_name] = free_name
-
-        return sigma
 
 
     def outer_outer(self, bindings: frozenset, c: base.Composition, i: base.Solo,
@@ -186,6 +170,7 @@ class Scope(base.Scope):
     @staticmethod
     def id(agent: Agent) -> Agent:
         return Scope(frozenset(), agent)
+
 
 
 base.Scope = Scope

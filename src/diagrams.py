@@ -63,9 +63,10 @@ class Input(Edge):
     pass
 
 class Output(Edge):
-    inverse = Input
+    pass
 
 Input.inverse = Output
+Output.inverse = Input
 
 
 
