@@ -167,9 +167,9 @@ class Scope(base.Scope):
         return super().free_names(bindings | self.bindings)
 
 
-    @staticmethod
-    def id(agent: Agent) -> Agent:
-        return Scope(frozenset(), agent)
+    @classmethod
+    def id(cls, agent: Agent) -> Agent:
+        return cls(frozenset(), agent)
 
 
 

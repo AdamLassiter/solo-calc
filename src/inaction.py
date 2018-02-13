@@ -18,9 +18,9 @@ class Inaction(base.Inaction):
         return Inaction()
 
     
-    @staticmethod
-    def id(agent: Agent) -> Agent:
-        return Inaction()
+    @classmethod
+    def id(cls, agent: Agent) -> Agent:
+        return cls()
 
 
 

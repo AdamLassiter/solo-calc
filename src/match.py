@@ -29,9 +29,9 @@ class Match(base.Match):
         return self.agent.reduce(dict(matches, **self.matches), bindings)
 
 
-    @staticmethod
-    def id(agent: Agent) -> Agent:
-        return Match(agent, dict())
+    @classmethod
+    def id(cls, agent: Agent) -> Agent:
+        return cls(agent, dict())
 
 
 

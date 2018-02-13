@@ -55,9 +55,9 @@ class Composition(base.Composition):
             return base.Inaction()
 
 
-    @staticmethod
-    def id(agent: Agent) -> Agent:
-        return Composition(frozenset({agent}))
+    @classmethod
+    def id(cls, agent: Agent) -> Agent:
+        return cls(frozenset({agent}))
  
 
 base.Composition = Composition

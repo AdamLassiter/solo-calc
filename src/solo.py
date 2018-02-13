@@ -22,7 +22,11 @@ class Solo(base.Solo):
 
 
     def eq(self, other: Agent, self_bindings: frozenset, other_bindings: frozenset) -> frozenset:
-        if type(self) != type(other) or self.arity != other.arity:
+        # TODO: This is still not complete
+        # Consider (w y)(^u w x | u y z) == (w y)(^u x w | u z y)
+        # However, here 'equals' will return false
+        # Although, this term is reducible
+        if not isinstance(self, Solo) or not isinstance(other, Solo) or self.arity != other.arity:
             return frozenset()
         solution = {}
         for my_name, your_name in zip(self, other):
@@ -49,8 +53,8 @@ class Solo(base.Solo):
             return type(self)(subject, objects)
 
 
-    @staticmethod
-    def id(agent: Agent) -> Agent:
+    @classmethod
+    def id(cls, agent: Agent) -> Agent:
         # This is the best we can do...
         return None
 

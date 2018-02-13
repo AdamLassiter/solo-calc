@@ -114,22 +114,27 @@ class Agent(frozenset):
 
 
     def construct_sigma(self, bindings: frozenset, iagent: object, oagent: object) -> dict:
-        # NOTE: Graph partitioning > naive pairwise cases for intersection
+        # Find a renaming, sigma s.t. the agents of iagent and oagent are fused under a
+        # given set of bindings
+        # This is done by constructing a graph...
         g = graph()
         sigma = dict()
+        # ...and inserting edges representing each pair of names in the fused agents
         for pair in zip(iagent.objects, oagent.objects):
             g.insert_edge(*pair)
-
+        # Each partition of the graph forms a set of names to be fused to one another
         for partition in g.partitions():
+            # At most, only one name per partition may be free
             intersect = partition - bindings
             assert len(intersect) <= 1
+            # If none are free, construct a fresh name to fuse into
             if len(intersect) == 0:
                 free_name = Name.fresh(self.names | bindings, 'u')
             else:
                 free_name, = intersect
+            # Assign fusions for each bound name into the free or fresh name
             for bound_name in partition - {free_name}:
                 sigma[bound_name] = free_name
-
         return sigma
 
 
