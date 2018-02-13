@@ -6,7 +6,7 @@ class hashdict(dict):
     based on answers from
        http://stackoverflow.com/questions/1151658/python-hashable-dicts
     """
-    def __key(self):
+    def __key(self) -> tuple:
         try:
             return self.hashdict_key
         except AttributeError:
@@ -14,12 +14,12 @@ class hashdict(dict):
         k = self.hashdict_key = tuple(sorted(self.items()))
         return k
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "{0}({1})".format(self.__class__.__name__,
             ", ".join("{0}={1}".format(
                     str(i[0]),repr(i[1])) for i in self.__key()))
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         try:
             return self.hashdict_hash
         except AttributeError:
