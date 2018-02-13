@@ -9,6 +9,7 @@ Executing the [tests.py](/src/tests.py) file runs all available unit tests, whil
 ### Prerequisites
 * Python 3.6
     * Multiset >= v2.0.0
+    * regex >= 2018.2.8
 * Webbrowser with d3.js support
 
 ## Contributing
