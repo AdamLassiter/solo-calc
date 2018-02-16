@@ -155,12 +155,12 @@ class Map(dict):
 
 
     @property
-    def dom(self) -> set:
+    def domain(self) -> set:
         return set(self.keys())
 
 
     @property
-    def ran(self) -> set:
+    def range(self) -> set:
         return set(self.values())
 
 
@@ -177,10 +177,10 @@ class Diagram(triple):
         super().__init__(graph, boxes, l)
         for box in boxes:
             assert (graph.nodes - box.internals).isdisjoint(box.internals)
-        for node in l.dom:
+        for node in l.domain:
             assert isinstance(node, Node)
             assert node in graph.nodes | boxes.principals
-        for node in l.ran:
+        for node in l.range:
             assert isinstance(node, Node) 
         self.graph = graph
         self.boxes = boxes
@@ -192,8 +192,8 @@ class Diagram(triple):
         if alpha.subject == beta.subject and alpha.arity == beta.arity:
             sigma = Map()
             raise NotImplementedError
-            assert sigma.ran & sigma.dom == set()
-            assert sigma.dom & self.l.dom == set()
+            assert sigma.range & sigma.domain == set()
+            assert sigma.domain & self.l.domain == set()
             return sigma
 
     

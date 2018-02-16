@@ -18,6 +18,7 @@ class Replication(base.Replication):
 
     def reduce(self, matches: dict = {}, bindings: frozenset = frozenset()) -> Agent:
         # FIXME: Should this reduce?
+        # FIXME: Renaming can still happen, but not always
         # Reduction inside of a replication is shaky
         agent = self.agent
 
