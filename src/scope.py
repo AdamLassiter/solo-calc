@@ -89,18 +89,17 @@ class Scope(base.Scope):
             return None
 
 
-    def reduce(self, matches: dict = {}, bindings: frozenset = frozenset()) -> Agent:
-        agent = self.agent.reduce(matches, bindings)
-        sigma_bindings = frozenset(map(lambda x: matches.get(x, x), self.bindings))
-        new_bindings = sigma_bindings - self.free_names(bindings)
+    def reduce(self, bindings: frozenset = frozenset()) -> Agent:
+        agent = self.agent.reduce(bindings)
+        all_bindings = bindings | self.bindings
 
         # NOTE: (x)(y)(P) == (xy)(P)
         if isinstance(agent, Scope):
-            new_bindings |= agent.bindings
+            all_bindings |= agent.bindings
             agent = agent.agent
 
         # NOTE: ()(P) == P
-        if not new_bindings:
+        if not all_bindings:
             return agent.reduce(matches, bindings)
  
         for Io in base.Solo.types:
@@ -110,7 +109,7 @@ class Scope(base.Scope):
                            for c in typefilter(base.Composition, {agent})
                            for i in typefilter(Io, c)
                            for o in typefilter(Io.inverse, c)):
-                ret = self.outer_outer(new_bindings | bindings, *agents)
+                ret = self.outer_outer(all_bindings | bindings, *agents)
                 if ret:
                     return ret
 
@@ -123,7 +122,7 @@ class Scope(base.Scope):
                            for c1 in typefilter(base.Composition, s)
                            for i in typefilter(Io, c1)
                            for o in typefilter(Io.inverse, c1)):
-                ret = self.inner_fusion(new_bindings | bindings, *agents)
+                ret = self.inner_fusion(all_bindings | bindings, *agents)
                 if ret:
                     return ret
 
@@ -139,7 +138,7 @@ class Scope(base.Scope):
                            for s2 in typefilter(Scope, r2)
                            for c2 in typefilter(base.Composition, s2)
                            for o in typefilter(Io.inverse, c2)):
-                ret = self.inner_inner(new_bindings | bindings, *agents)
+                ret = self.inner_inner(all_bindings | bindings, *agents)
                 if ret:
                     return ret
 
@@ -151,16 +150,21 @@ class Scope(base.Scope):
                            for s in typefilter(Scope, r)
                            for c1 in typefilter(base.Composition, s)
                            for o in typefilter(Io.inverse, c1)):
-                ret = self.outer_inner(new_bindings | bindings, *agents)
+                ret = self.outer_inner(all_bindings | bindings, *agents)
                 if ret:
                     return ret
         
-        if new_bindings:
-            return Scope(new_bindings, agent)
+        if all_bindings:
+            return Scope(all_bindings, agent)
         elif agent:
             return agent
         else:
             return base.Inaction()
+
+
+    def match(self, matches: dict = {}) -> Agent:
+        return type(self)(frozenset(map(lambda x: matches.get(x, x), self.bindings)),
+                          self.agent.match(matches))
 
 
     def free_names(self, bindings: frozenset) -> frozenset:

@@ -24,8 +24,8 @@ class Composition(base.Composition):
         return ret
 
 
-    def reduce(self, matches: dict = {}, bindings: frozenset = frozenset()) -> Agent:
-        agents = frozenset(agent.reduce(matches, bindings) for agent in self)
+    def reduce(self, bindings: frozenset = frozenset()) -> Agent:
+        agents = frozenset(agent.reduce(bindings) for agent in self)
         rescope = frozenset()
 
         # NOTE: ((x)P | Q) -> (x)(P | Q)
@@ -53,6 +53,10 @@ class Composition(base.Composition):
             return agent
         else:
             return base.Inaction()
+
+
+    def match(self, matches: dict = {}) -> object:
+        return type(self)({agent.match(matches) for agent in self})
 
 
     @classmethod

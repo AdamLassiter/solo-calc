@@ -1,6 +1,8 @@
 #! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# TODO: Need to remove fused scopes
+# TODO: Need to rename only for the first scoping of a given agent ( i.e. !(x)P )
 # NOTE: Notes for later
 '''
 Expressions are immutable due to problems with adding mutable items to a set:
@@ -14,7 +16,7 @@ Reductions are performed recursively:
     Then reduction rules are applied where applicable - this includes:
         * Trivial cases for nested copies of operators and TODO: for identites of operators
         * Extracting scopes where applicable ((x)P | Q) -> (x)(P | Q) if x ∉ fn(Q)
-        * Applying the flattening theorem for 
+        * Applying the flattening theorem for nested replications
         * Finite reduction of (non-nested) replications
             See paper implementation
 
@@ -138,7 +140,7 @@ class Agent(frozenset):
         return sigma
 
 
-    def reduce(self, matches: dict = {}, bindings: frozenset = frozenset()) -> object:
+    def reduce(self, bindings: frozenset = frozenset()) -> object:
         raise NotImplementedError
 
 

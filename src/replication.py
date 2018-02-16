@@ -16,10 +16,8 @@ class Replication(base.Replication):
         return '!%s' % self.agent
 
 
-    def reduce(self, matches: dict = {}, bindings: frozenset = frozenset()) -> Agent:
-        # FIXME: Should this reduce?
-        # FIXME: Renaming can still happen, but not always
-        # Reduction inside of a replication is shaky
+    def reduce(self, bindings: frozenset = frozenset()) -> Agent:
+        # Reduction cannot be performed directly inside a replicator
         agent = self.agent
 
         # NOTE: !(!(P)) == !(P)
@@ -45,15 +43,17 @@ class Replication(base.Replication):
                               base.Composition({P, Io(u, z)}))
             Qrep = base.Match(base.Scope(ws, base.Composition({Io.inverse(u, wt),
                                                                Q})), dict(zip(z, wt)))
-            return base.Scope({u}, base.Composition({Replication(Prep.reduce(matches,
-                                                                             bindings)), 
-                                                     Replication(Qrep.reduce(matches,
-                                                                             bindings))}))
+            return base.Scope({u}, base.Composition({Replication(Prep.reduce(bindings)), 
+                                                     Replication(Qrep.reduce(bindings))}))
 
         if agent:
             return Replication(agent)
         else:
             return base.Inaction()
+
+
+    def match(self, matches: dict = {}) -> Agent:
+        return type(self)(self.agent.match(matches))
 
     
     @classmethod

@@ -25,8 +25,12 @@ class Match(base.Match):
                                                  for key, value in self.matches.items()]))
     
 
-    def reduce(self, matches: dict = {}, bindings: frozenset = frozenset()) -> Agent:
-        return self.agent.reduce(dict(matches, **self.matches), bindings)
+    def reduce(self, bindings: frozenset = frozenset()) -> Agent:
+        return self.agent.match(self.matches).reduce(bindings)
+
+
+    def match(self, matches: dict = {}) -> Agent:
+        return self.agent.match(dict(matches, **self.matches))
 
 
     @classmethod

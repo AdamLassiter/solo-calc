@@ -42,9 +42,13 @@ class Solo(base.Solo):
 
     def __str__(self) -> str:
         return ' '.join(map(str, self.objects))
+    
+
+    def reduce(self, bindings: frozenset = frozenset()) -> Agent:
+        return type(self)(self.subject, self.objects)
 
 
-    def reduce(self, matches: dict = {}, bindings: frozenset = frozenset()) -> Agent:
+    def match(self, matches: dict = {}) -> Agent:
         subject =  Name(matches.get(self.subject, self.subject))
         objects = tuple(Name(matches.get(name, name)) for name in self.objects)
         if not objects:
