@@ -18,7 +18,7 @@ class Inaction(base.Inaction):
         return Inaction()
     
     
-    def match(self, matches: dict = {}) -> Agent:
+    def match(self, matches: dict, bindings: frozenset) -> Agent:
         return Inaction()
 
     

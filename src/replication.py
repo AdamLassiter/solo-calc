@@ -41,8 +41,8 @@ class Replication(base.Replication):
             Io, _ = base.Solo.types
             Prep = base.Scope(s.bindings,
                               base.Composition({P, Io(u, z)}))
-            Qrep = base.Match(base.Scope(ws, base.Composition({Io.inverse(u, wt),
-                                                               Q})), dict(zip(z, wt)))
+            Qrep = base.Match(base.Scope(ws, base.Composition({Io.inverse(u, wt), Q})), 
+                              dict(zip(z, wt)))
             return base.Scope({u}, base.Composition({Replication(Prep.reduce(bindings)), 
                                                      Replication(Qrep.reduce(bindings))}))
 
@@ -52,8 +52,8 @@ class Replication(base.Replication):
             return base.Inaction()
 
 
-    def match(self, matches: dict = {}) -> Agent:
-        return type(self)(self.agent.match(matches))
+    def match(self, matches: dict, bindings: frozenset) -> Agent:
+        return type(self)(self.agent.match(matches, bindings))
 
     
     @classmethod

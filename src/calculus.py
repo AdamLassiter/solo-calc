@@ -50,13 +50,13 @@ def build_composition(match, names: dict) -> Composition:
     return Composition(agents)
 
 
-replication = re.compile(r'\s?!(?P<agent>\(.*\))\s?')
+replication = re.compile(r'\s?!(?P<agent>.*)\s?')
 def build_replication(match, names: dict) -> Replication:
     agent = build_agent(match['agent'], names)
     return Replication(agent)
 
 
-scope = re.compile(r'\s?\((?P<bindings>([a-z0-9]+\s?)+)\)(?P<agent>.+)\s?')
+scope = re.compile(r'\s?\((?P<bindings>([a-z0-9]+\s?)+)\)(?P<agent>[^\s].+)\s?')
 def build_scope(match, names: dict) -> Scope:
     agent = build_agent(match['agent'], names)
     for name in match['bindings'].split():
@@ -79,14 +79,13 @@ def build_agent(string: str, names: dict=None) -> Agent:
 
 
 def reduce(agent: Agent, verbose=False) -> Agent:
+    computation = [agent]
     while True:
-        reduction = agent.reduce()
+        computation.append(computation[-1].reduce())
         if verbose:
-            print(reduction)
-        if reduction.equals(agent):
-            return reduction
-        else:
-            agent = reduction
+            print(computation[-1])
+        if any(map(computation[-1].equals, computation[:-1])):
+            return computation[-1]
 
 
 def repl():

@@ -19,17 +19,22 @@ class Solo(base.Solo):
 
         for name in self.objects:
             assert isinstance(name, Name)
+    
+
+    def __eq__(self, other) -> object:
+        return type(self) == type(other) and super().__eq__(other)
+    
+
+    def __hash__(self) -> int:
+        return super().__hash__()
 
 
     def eq(self, other: Agent, self_bindings: frozenset, other_bindings: frozenset) -> frozenset:
-        # TODO: This is still not complete
-        # Consider (w y)(^u w x | u y z) == (w y)(^u x w | u z y)
-        # However, here 'equals' will return false
-        # Although, this term is reducible
         if not isinstance(self, Solo) or not isinstance(other, Solo) or self.arity != other.arity:
             return frozenset()
         solution = {}
-        for my_name, your_name in zip(self, other):
+        for my_name, your_name in zip((self.subject,) + self.objects,
+                                      (other.subject,) + other.objects):
             if (my_name in self_bindings) != (your_name in other_bindings):
                 return frozenset()
             elif (my_name in solution.keys() or your_name in solution.values()) \
@@ -37,7 +42,7 @@ class Solo(base.Solo):
                 return frozenset()
             else:
                 solution[my_name] = your_name
-        return frozenset([hashdict(solution)])
+        return frozenset({hashdict(solution)})
 
 
     def __str__(self) -> str:
@@ -45,10 +50,13 @@ class Solo(base.Solo):
     
 
     def reduce(self, bindings: frozenset = frozenset()) -> Agent:
-        return type(self)(self.subject, self.objects)
+        if self.objects:
+            return type(self)(self.subject, self.objects)
+        else:
+            return base.Inaction()
 
 
-    def match(self, matches: dict = {}) -> Agent:
+    def match(self, matches: dict = {}, bindings: frozenset = frozenset()) -> Agent:
         subject =  Name(matches.get(self.subject, self.subject))
         objects = tuple(Name(matches.get(name, name)) for name in self.objects)
         if not objects:

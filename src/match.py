@@ -19,6 +19,15 @@ class Match(base.Match):
             # NOTE: Here, {a: c, b: c} renames both a and b to c
         # assert isinstance(agent, base.Scope)
 
+    
+    def eq(self, other: Agent, self_bindings: frozenset, other_bindings: frozenset) -> frozenset:
+        if isinstance(other, Match):
+            other_agent = other.agent
+            other_matches = other.matches
+        else:
+            other_agent = other
+            other_matches = {}
+        return self.agent.eq(other_agent, self_bindings, other_bindings)
 
     def __str__(self) -> str:
         return '%s{%s}' % (self.agent, ', '.join(['%s/%s' % (value, key)
@@ -26,11 +35,11 @@ class Match(base.Match):
     
 
     def reduce(self, bindings: frozenset = frozenset()) -> Agent:
-        return self.agent.match(self.matches).reduce(bindings)
+        return self.match(self.matches, bindings).reduce(bindings)
 
 
-    def match(self, matches: dict = {}) -> Agent:
-        return self.agent.match(dict(matches, **self.matches))
+    def match(self, matches: dict, bindings: frozenset) -> Agent:
+        return self.agent.match(dict(matches, **self.matches), bindings)
 
 
     @classmethod

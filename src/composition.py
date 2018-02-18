@@ -49,14 +49,14 @@ class Composition(base.Composition):
         if len(agents) > 1:
             return Composition(agents)
         elif len(agents) == 1:
-            agent, = agents
+            agent, *_ = agents
             return agent
         else:
             return base.Inaction()
 
 
-    def match(self, matches: dict = {}) -> object:
-        return type(self)({agent.match(matches) for agent in self})
+    def match(self, matches: dict, bindings: frozenset) -> object:
+        return type(self)({agent.match(matches, bindings) for agent in self})
 
 
     @classmethod
