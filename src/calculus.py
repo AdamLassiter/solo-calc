@@ -98,7 +98,11 @@ def repl():
         elif user_in == '->':
             agent = agent.reduce()
         elif user_in:
-            agent = build_agent(user_in)
+            try:
+                agent = build_agent(user_in)
+            except:
+                print('error')
+                continue
         print(agent)
 
 
