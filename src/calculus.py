@@ -83,7 +83,7 @@ def reduce(agent: Agent, verbose=False) -> Agent:
     while True:
         computation.append(computation[-1].reduce())
         if verbose:
-            print(computation[-1])
+            print('[verbose]', computation[-2], '->', computation[-1])
         if any(map(computation[-1].equals, computation[:-1])):
             return computation[-1]
 

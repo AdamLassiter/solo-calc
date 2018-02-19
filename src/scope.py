@@ -29,31 +29,27 @@ class Scope(base.Scope):
 
 
     def outer_outer(self, bindings: frozenset, c: base.Composition, i: base.Solo,
-                    o: base.Solo) -> base.Match:
+                    o: base.Solo) -> tuple:
         if i.subject == o.subject and i.arity == o.arity and isinstance(i, o.inverse):
             P = base.Composition(c - {i, o})
-            sigmas = self.construct_sigma(bindings, i, o)
-            for sigma in sigmas:
-                return base.Match(P, sigma)
+            sigma, fresh_names = self.construct_sigma(bindings, i, o)
+            return (P, sigma, fresh_names | (self.bindings - set(i.objects + o.objects)))
         return None
 
 
     def outer_inner(self, bindings: frozenset, c: base.Composition, i: base.Solo,
                     r: base.Replication, s: base.Scope, c1: base.Composition,
-                    o: base.Solo) -> base.Match:
+                    o: base.Solo) -> tuple:
         P = base.Composition(c - {i, r})
         Q = base.Composition(c1 - {o})
         if i.subject == o.subject and i.arity == o.arity \
         and isinstance(i, o.inverse) and o.subject not in s.bindings \
         and not s.bindings & P.free_names(bindings) - bindings:
-            sigmas = self.construct_sigma(bindings | s.bindings, i, o)
-            for sigma in sigmas:
-                if bindings <= sigma.keys() <= bindings | s.bindings:
-                    inner_bindings = s.bindings
-                    return base.Match(Scope(inner_bindings,
-                                            base.Composition({P, Q, r})),
-                                      sigma)
-        return None
+            sigma, fresh_names = self.construct_sigma(bindings | s.bindings, i, o)
+            if bindings <= sigma.keys() <= bindings | s.bindings:
+                return (base.Composition({P, Q, r}), sigma,
+                        fresh_names | (self.bindings - set(i.objects + o.objects)))
+            return None
 
 
     def inner_inner(self, bindings: frozenset, c: base.Composition, r1: base.Replication,
@@ -68,12 +64,10 @@ class Scope(base.Scope):
         and not inner_bindings & P.free_names(bindings) - bindings \
         and not s1.bindings & R.free_names(bindings | s1.bindings) - bindings \
         and not s2.bindings & Q.free_names(bindings | s2.bindings) - bindings:
-            sigmas = self.construct_sigma(bindings | inner_bindings, i, o)
-            for sigma in sigmas:
-                if sigma.keys() <= bindings | inner_bindings:
-                    return base.Match(base.Scope(inner_bindings,
-                                                 base.Composition({P, Q, R, r1, r2})),
-                                      sigma)
+            sigma, fresh_names = self.construct_sigma(bindings | inner_bindings, i, o)
+            if sigma.keys() <= bindings | inner_bindings:
+                return (base.Composition({P, Q, R, r1, r2}), sigma,
+                        fresh_names | (self.bindings - set(i.objects + o.objects)))
         return None
 
 
@@ -83,13 +77,10 @@ class Scope(base.Scope):
         P = base.Composition(c - {r})
         Q = base.Composition(c1 - {i, o})
         if i.subject == o.subject and i.arity == o.arity and isinstance(i, o.inverse):
-            sigmas = self.construct_sigma(bindings | s.bindings, i, o)
-            for sigma in sigmas:
-                if bindings <= sigma.keys() <= bindings | s.bindings:
-                    inner_bindings = s.bindings | (self.bindings & set(sigma.values()))
-                    return base.Match(Scope(inner_bindings,
-                                        base.Composition({P, Q, r})),
-                                  sigma)
+            sigma, fresh_names = self.construct_sigma(bindings | s.bindings, i, o)
+            if bindings <= sigma.keys() <= bindings | s.bindings:
+                return (base.Composition({P, Q, r}), sigma,
+                        fresh_names | (self.bindings - set(i.objects + o.objects)))
         return None
 
 
@@ -165,7 +156,8 @@ class Scope(base.Scope):
 
         reduction = self.attempt_fusion(agent, my_bindings | bindings)
         if reduction is not None:
-            return Scope(my_bindings, reduction)
+            agent, sigma, bindings = reduction
+            return Scope(bindings, base.Match(agent, sigma))
 
         if agent:
             return Scope(my_bindings, agent)

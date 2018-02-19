@@ -1,8 +1,6 @@
 #! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# TODO: Need to rename only for the first scoping of a given agent ( i.e. !(x)P )... Accomplish
-# by tracking bindings on matching? If something is twice bound, it is forgotten.
 # NOTE: Notes for later
 '''
 Expressions are immutable due to problems with adding mutable items to a set:
@@ -122,38 +120,31 @@ class Agent(frozenset):
         return '%s [%s]' % (type(self), str(self))
 
 
-    def construct_sigma(self, bindings: frozenset, iagent: object, oagent: object) -> frozenset:
+    def construct_sigma(self, bindings: frozenset, iagent: object, oagent: object) -> tuple:
         # Find a renaming, sigma s.t. the agents of iagent and oagent are fused under a
-        # given set of bindings. There may be multiple such sigma, so return all possible
-        # sigma.
+        # given set of bindings.
         # This is done by constructing a graph...
         g = graph()
-        sigmas = [dict()]
         # ...and inserting edges representing each pair of names in the fused agents
         for pair in zip(iagent.objects, oagent.objects):
             g.insert_edge(*pair)
         # Each partition of the graph forms a set of names to be fused to one another
+        sigma = dict()
+        fresh_names = set()
         for partition in g.partitions():
             # At most, only one name per partition may be free
             intersect = partition - bindings
             assert len(intersect) <= 1
             # If none are free, pick a bound name to fuse into, and pretend it may be free
             if len(intersect) == 0:
-                temp_sigmas = []
-                for name in partition:
-                    partial_sigmas = [dict(sigma) for sigma in sigmas]
-                    for temp_sigma in partial_sigmas:
-                        for bound_name in partition - {name}:
-                            temp_sigma[bound_name] = name
-                    temp_sigmas.extend(partial_sigmas)
-                sigmas = temp_sigmas
+                free_name = Name.fresh(bindings, 'v')
+                fresh_names |= {free_name}
             else:
                 free_name, = intersect
                 # Assign fusions for each bound name into the free or fresh name
-                for sigma in sigmas:
-                    for bound_name in partition - {free_name}:
-                        sigma[bound_name] = free_name
-        return frozenset({hashdict(dict) for dict in sigmas})
+            for bound_name in partition - {free_name}:
+                sigma[bound_name] = free_name
+        return (hashdict(sigma), frozenset(fresh_names))
 
 
     def reduce(self, bindings: frozenset = frozenset()) -> object:
