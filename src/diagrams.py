@@ -168,7 +168,7 @@ class Map(dict):
 class Diagram(triple):
     '''
     A solo diagram SD is a triple (G, M, l) where:
-        G is a graph: graph = multiset<node>,
+        G is a graph: graph = multiset<edge>,
         M is a finite multiset of boxes: box = pair<graph, set<node>>,
         l is a labelling of nodes: labelling = map<node, node>
     '''
