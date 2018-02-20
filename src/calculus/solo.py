@@ -8,7 +8,7 @@ from base import Agent, Name
 
 class Solo(base.Solo):
 
-    def __new__(typ, subject, objects) -> object:
+    def __new__(typ, subject, objects) -> base.Solo:
         return super().__new__(typ, (subject,) + objects)
 
 
@@ -21,7 +21,7 @@ class Solo(base.Solo):
             assert isinstance(name, Name)
     
 
-    def __eq__(self, other) -> object:
+    def __eq__(self, other) -> bool:
         return type(self) == type(other) and super().__eq__(other)
     
 
@@ -32,7 +32,7 @@ class Solo(base.Solo):
     def eq(self, other: Agent, self_bindings: frozenset, other_bindings: frozenset) -> frozenset:
         if not isinstance(self, Solo) or not isinstance(other, Solo) or self.arity != other.arity:
             return frozenset()
-        solution = {}
+        solution: dict = {}
         for my_name, your_name in zip((self.subject,) + self.objects,
                                       (other.subject,) + other.objects):
             if (my_name in self_bindings) != (your_name in other_bindings):

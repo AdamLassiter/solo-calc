@@ -23,10 +23,8 @@ class Match(base.Match):
     def eq(self, other: Agent, self_bindings: frozenset, other_bindings: frozenset) -> frozenset:
         if isinstance(other, Match):
             other_agent = other.agent
-            other_matches = other.matches
         else:
             other_agent = other
-            other_matches = {}
         return self.agent.eq(other_agent, self_bindings, other_bindings)
 
     def __str__(self) -> str:

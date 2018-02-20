@@ -14,11 +14,11 @@ class Inaction(base.Inaction):
         return False
 
 
-    def reduce(self, bindings: frozenset = frozenset()) -> Agent:
+    def reduce(self, bindings: frozenset = frozenset()) -> base.Inaction:
         return Inaction()
     
     
-    def match(self, matches: dict, bindings: frozenset) -> Agent:
+    def match(self, matches: dict, bindings: frozenset) -> base.Inaction:
         return Inaction()
 
     

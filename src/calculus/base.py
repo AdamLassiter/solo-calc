@@ -29,6 +29,8 @@ Renaming functions σ are found as follows:
     * Define σ[bn] := fn ∀ bn ϵ G
 '''
 
+from __future__ import annotations
+
 from functools import reduce
 from itertools import permutations
 
@@ -58,11 +60,11 @@ typefilter = netf
 
 class Agent(frozenset):
 
-    def equals(self, other: object) -> bool:
+    def equals(self, other: Agent) -> bool:
         return bool(self.eq(other, frozenset(), frozenset()))
 
 
-    def eq(self, other: object, self_bindings: frozenset, other_bindings: frozenset) -> frozenset:
+    def eq(self, other: Agent, self_bindings: frozenset, other_bindings: frozenset) -> frozenset:
         # Return 'false' for trivial cases
         if type(self) != type(other) or len(self) != len(other):
             return frozenset()
@@ -120,7 +122,7 @@ class Agent(frozenset):
         return '%s [%s]' % (type(self), str(self))
 
 
-    def construct_sigma(self, bindings: frozenset, iagent: object, oagent: object) -> tuple:
+    def construct_sigma(self, bindings: frozenset, iagent: Solo, oagent: Solo) -> tuple:
         # Find a renaming, sigma s.t. the agents of iagent and oagent are fused under a
         # given set of bindings.
         # This is done by constructing a graph...
@@ -147,11 +149,11 @@ class Agent(frozenset):
         return (hashdict(sigma), frozenset(fresh_names))
 
 
-    def reduce(self, bindings: frozenset = frozenset()) -> object:
+    def reduce(self, bindings: frozenset = frozenset()) -> Agent:
         raise NotImplementedError
 
     
-    def match(self, matches: dict, bindings: frozenset) -> object:
+    def match(self, matches: dict, bindings: frozenset) -> Agent:
         raise NotImplementedError
 
 
@@ -162,12 +164,12 @@ class Agent(frozenset):
     
 
     @staticmethod
-    def id(agent: object) -> object:
+    def id(agent: Agent) -> Agent:
         raise NotImplementedError
 
 
     @property
-    def agent(self) -> object:
+    def agent(self) -> Agent:
         if len(self) == 1:
             agent, *_ = self
             return agent

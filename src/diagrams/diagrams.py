@@ -55,15 +55,15 @@ class Edge(tuple):
 
     @property
     def nodes(self) -> set:
-        return {node for node in self}
+        return set({node for node in self})
 
 
 
 class Input(Edge):
-    pass
+    inverse = None
 
 class Output(Edge):
-    pass
+    inverse = None
 
 Input.inverse = Output
 Output.inverse = Input
@@ -194,7 +194,7 @@ class Diagram(triple):
             raise NotImplementedError
             assert sigma.range & sigma.domain == set()
             assert sigma.domain & self.l.domain == set()
-            return sigma
+        return sigma
 
     
     # TODO: Implement rho construction

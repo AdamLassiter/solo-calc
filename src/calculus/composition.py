@@ -55,7 +55,7 @@ class Composition(base.Composition):
             return base.Inaction()
 
 
-    def match(self, matches: dict, bindings: frozenset) -> object:
+    def match(self, matches: dict, bindings: frozenset) -> Agent:
         return type(self)({agent.match(matches, bindings) for agent in self})
 
 
