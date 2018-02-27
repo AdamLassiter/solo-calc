@@ -1,4 +1,4 @@
-{
+{"graph":{
     "nodes": [
         {"id": "Alice", "group": 1, "r": 10},
         {"id": "Bob", "group": 2, "r": 10},
@@ -7,7 +7,7 @@
         {"id": "Fred", "group": 4, "r": 10},
         {"id": "BEF", "group":2, "r": 0}
     ],
-    "links": [
+    "edges": [
         {"source": "Alice", "target": "Bob", "value": 1},
         {"source": "Alice", "target": "Charlie", "value": 1},
         {"source": "Bob", "target": "BEF", "value": 2},
@@ -15,4 +15,5 @@
         {"source": "Fred", "target": "BEF", "value": 5},
         {"source": "Charlie", "target": "Eve", "value":2}
     ]
+}
 }

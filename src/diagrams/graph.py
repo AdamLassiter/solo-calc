@@ -11,11 +11,10 @@ class graph(dict):
 
 
     def insert_edge(self, *nodes: Hashable) -> None:
-        nodes = frozenset(nodes)
         for node in nodes:
             if node not in self.keys():
                 self.insert_node(node)
-            self[node] |= nodes - {node}
+            self[node] |= frozenset(nodes) - {node}
 
 
     def span(self, node: Hashable) -> frozenset:
