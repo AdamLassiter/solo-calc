@@ -35,12 +35,8 @@ d3.json("graph.json", function(error, graph) {
             .attr("stroke-width", function(d) { return Math.sqrt(d.value); })
             .each(function(d) {
                 item = d3.select(this).data([d])
-                if (d["arrow"] == 1) {
+                if (d["arrow"] != 0) {
                     item.attr("marker-end", "url(#end)");
-                } else if (d["arrow"] == -1) {
-                    item.attr("marker-end", "url(#end)");
-                } else {
-                    console.log(d);
                 }
             });
 
