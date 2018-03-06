@@ -15,17 +15,15 @@ d3.json("graph.json", function(error, graph) {
 
     var arrow = svg.append("svg:defs")
         .selectAll("marker")
-        .data(["end"])
+        .data(["mid"])
         .enter()
             .append("svg:marker")
             .attr("id", String)
             .attr("viewBox", "0 -5 10 10")
-            .attr("refX", 20)
-            .attr("refY", 0)
             .attr("markerWidth", 10)
             .attr("markerHeight", 10)
             .attr("orient", "auto")
-        .append("svg:path")
+            .append("svg:path")
             .attr("d", "M0,-5 L10,0 L0,5");
 
     var link = svg.append("g")
@@ -33,12 +31,12 @@ d3.json("graph.json", function(error, graph) {
         .selectAll(".links")
         .data(graph.graph.edges)
         .enter()
-            .append("line")
+            .append("polyline")
             .attr("stroke-width", function(d) { return Math.sqrt(d.value); })
             .each(function(d) {
                 item = d3.select(this).data([d])
                 if (d["arrow"] != 0) {
-                    item.attr("marker-end", "url(#end)");
+                    item.attr("marker-mid", "url(#mid)");
                 }
             });
     
@@ -89,12 +87,12 @@ d3.json("graph.json", function(error, graph) {
                     .selectAll(".links")
                     .data(d.graph.edges)
                     .enter()
-                        .append("line")
+                        .append("polyline")
                         .attr("stroke-width", function(d) { return Math.sqrt(d.value); })
                         .each(function(d) {
                             item = d3.select(this).data([d])
                             if (d["arrow"] != 0) {
-                                item.attr("marker-end", "url(#end)");
+                                item.attr("marker-mid", "url(#mid)");
                             }
                         });
             });    
@@ -131,6 +129,18 @@ d3.json("graph.json", function(error, graph) {
         allNodes.attr("cx", function(d) { return d.x; })
             .attr("cy", function(d) { return d.y; })
             .attr("r",  function(d) { return d.r; });
+
+        allLinks.attr("points", function(d) {
+            console.log(d);
+            var x0 = d.source.x,
+                y0 = d.source.y,
+                x1 = d.target.x,
+                y1 = d.target.y,
+                dx = x1 - x0,
+                dy = y1 - y0,
+                g = dy / dx;
+            return x0 + "," + y0 + " " +  + "," + my + " " + x1 + "," + y1;
+        });
     }
 });
 
