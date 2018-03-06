@@ -7,18 +7,20 @@ var color = d3.scaleOrdinal(d3.schemeCategory20);
 var simulation = d3.forceSimulation()
     .force("link", d3.forceLink().id(function(d) { return d.id; }))
     .force("charge", d3.forceManyBody())
-    .force("center", d3.forceCenter(width / 2, height / 2));
+    .force("x", d3.forceX(width / 2).strength(0.05))
+    .force("y", d3.forceY(height / 2).strength(0.05));
 
 d3.json("graph.json", function(error, graph) {
     if (error) throw error;
 
-    var arrow = svg.append("svg:defs").selectAll("marker")
-            .data(["end"])
+    var arrow = svg.append("svg:defs")
+        .selectAll("marker")
+        .data(["end"])
         .enter()
             .append("svg:marker")
             .attr("id", String)
             .attr("viewBox", "0 -5 10 10")
-            .attr("refX", 25)
+            .attr("refX", 20)
             .attr("refY", 0)
             .attr("markerWidth", 10)
             .attr("markerHeight", 10)
@@ -28,7 +30,7 @@ d3.json("graph.json", function(error, graph) {
 
     var link = svg.append("g")
         .attr("class", "links")
-        .selectAll("lines")
+        .selectAll(".links")
         .data(graph.graph.edges)
         .enter()
             .append("line")
@@ -39,10 +41,10 @@ d3.json("graph.json", function(error, graph) {
                     item.attr("marker-end", "url(#end)");
                 }
             });
-
+    
     var node = svg.append("g")
         .attr("class", "nodes")
-        .selectAll("nodes")
+        .selectAll(".nodes")
         .data(graph.graph.nodes)
         .enter()
             .append("circle")
@@ -53,25 +55,80 @@ d3.json("graph.json", function(error, graph) {
                 .on("drag", dragged)
                 .on("end", dragended));
 
-    node.append("title")
-        .text(function(d) { return d.id; });
+   var box = svg.append("g")
+        .attr("class", "boxes")
+        .selectAll(".boxes")
+        .data(graph.boxes)
+        .enter()
+            .append("g")
+            .attr("class", "box")
+            .each(function(d) {
+                item = d3.select(this).data([d])
+                var perimeter = d.perimeter;
+                item.append("g")
+                    .attr("class", "nodes")
+                    .selectAll(".nodes")
+                    .data(d.graph.nodes)
+                    .enter()
+                        .filter(function(d) {
+                            var repeat = false;
+                            perimeter.forEach(function(node) {
+                                repeat |= node["id"] == d["id"];
+                            });
+                            return !repeat;
+                        })
+                        .append("circle")
+                        .attr("r", 5)
+                        .attr("fill", function(d) { return color(d.group); })
+                        .call(d3.drag()
+                            .on("start", dragstarted)
+                            .on("drag", dragged)
+                            .on("end", dragended));
+                item.append("g")
+                    .attr("class", "links")
+                    .selectAll(".links")
+                    .data(d.graph.edges)
+                    .enter()
+                        .append("line")
+                        .attr("stroke-width", function(d) { return Math.sqrt(d.value); })
+                        .each(function(d) {
+                            item = d3.select(this).data([d])
+                            if (d["arrow"] != 0) {
+                                item.attr("marker-end", "url(#end)");
+                            }
+                        });
+            });    
+
+    var allNodes = d3.selectAll(".nodes").selectAll(function() { return this.childNodes; }),
+        allLinks = d3.selectAll(".links").selectAll(function() { return this.childNodes; }),
+        nodesList = [],
+        linksList = [];
+
+    allNodes.append("title")
+        .text(function(d) { return d.title; });
+ 
+    allNodes.datum(function(d) {
+        var repeat = false;
+        nodesList.forEach(function(node) {
+            repeat |= node["id"] == d["id"];
+        });
+        if (!repeat) {nodesList.push(d)};
+        return d;});
+    allLinks.datum(function(d) {linksList.push(d); return d;});
 
     simulation
-        .nodes(graph.graph.nodes)
-        .on("tick", ticked);
-
-    simulation.force("link")
-        .links(graph.graph.edges);
+        .nodes(nodesList)
+        .on("tick", ticked)
+        .force("link")
+        .links(linksList);
 
     function ticked() {
-        link
-            .attr("x1", function(d) { return d.source.x; })
+        allLinks.attr("x1", function(d) { return d.source.x; })
             .attr("y1", function(d) { return d.source.y; })
             .attr("x2", function(d) { return d.target.x; })
             .attr("y2", function(d) { return d.target.y; });
 
-        node
-            .attr("cx", function(d) { return d.x; })
+        allNodes.attr("cx", function(d) { return d.x; })
             .attr("cy", function(d) { return d.y; })
             .attr("r",  function(d) { return d.r; });
     }

@@ -36,16 +36,18 @@ class triple(tuple):
 
 
 
-class Node(object):
+class Node(str):
     '''
     A node N represents a named particle in a solo.
     '''
     size = 10
 
-    def __init__(self, name: str = None, uuid: str = None) -> None:
-        super().__init__()
-        self._uuid = uuid if uuid else str(uuid4())
-        self.name = name
+    def __new__(cls, name: str = None, uuid: str = None) -> Node:
+        uuid = uuid if uuid else str(uuid4())
+        obj = super().__new__(cls, uuid)
+        obj._name = name
+        obj._uuid = uuid
+        return obj
 
 
     @property
@@ -60,12 +62,12 @@ class Node(object):
 
     @property
     def named(self) -> bool:
-        return getattr(self, '_name') is not None
+        return self._name is not None
 
     
     @property
-    def json(self) -> object:
-        return {'id': self.name, 'r': self.size}
+    def json(self) -> dict:
+        return {'id': self._uuid, 'title': self._name, 'r': self.size}
 
 
 
@@ -101,14 +103,14 @@ class Edge(tuple):
     def json(self) -> object:
         if type(self) == Input:
             arrow = 1
-            source = self.subject.name
-            target = self._edge.name
+            source = self.subject.json['id']
+            target = self._edge.json['id']
         else:
             arrow = -1
-            source = self._edge.name
-            target = self.subject.name
+            source = self._edge.json['id']
+            target = self.subject.json['id']
         return [{'source': source, 'target': target, 'value': 1, 'arrow': arrow}] + \
-                [{'source': self._edge.name, 'target': obj.name, 'value': 1, 'arrow': 0}
+                [{'source': self._edge.json['id'], 'target': obj.json['id'], 'value': 1, 'arrow': 0}
                  for obj in self.objects]
 
 
@@ -159,7 +161,8 @@ class Box(pair):
     S is called the internal nodes of B and nodes[G]\S the principal nodes.
     '''
 
-    def __init__(self, graph: Graph, internals: set) -> None:
+    def __init__(self, *args) -> None:
+        graph, internals = self
         for node in internals:
             assert isinstance(node, Node)
         assert internals <= graph.nodes
@@ -219,8 +222,8 @@ class Boxes(multiset):
 class Map(dict):
 
     def __call__(self, obj):
-        if isinstance(obj, Iterable):
-            return type(obj)(map(self, obj))
+        if not isinstance(obj, Node):
+            return type(obj)(map(self, obj)) if len(obj) else obj
         else:
             return self.get(obj, obj)
 
@@ -305,7 +308,6 @@ class Diagram(triple):
                 graph = Graph(self.graph - {alpha, beta})
                 boxes = self.boxes
                 l = Map({k:v for k, v in self.labelling.items() if k not in sigma.domain})
-                print(sigma)
                 return Diagram((sigma(graph), sigma(boxes), l))
 
         # NOTE: edge-box reduction
@@ -366,5 +368,5 @@ class Diagram(triple):
 
     @property
     def json(self) -> object:
-        return {'graph': self.graph.json,
+        return {'graph': Graph(self.graph - multiset((box.graph for box in self.boxes))).json,
                 'boxes': self.boxes.json}
