@@ -25,7 +25,7 @@ class TestDiagrams(unittest.TestCase):
         loop_node = [Node() for _ in range(10)]
         loop_edges = [Input((loop_node[i-1], loop_node[i])) for i, _ in enumerate(loop_node)]
         
-        g = Graph(ee_edges + eb_edges + loop_edges)
+        g = Graph(ee_edges + eb_edges)
         m = Boxes([Box((Graph(g), frozenset(i))) for g, i in eb_boxes])
         l = Map()
 
