@@ -13,7 +13,17 @@ var simulation = d3.forceSimulation()
 d3.json("graph.json", function(error, graph) {
     if (error) throw error;
 
-    var arrow = svg.append("svg:defs")
+    var containedIn = function(list) {
+        return function(item) {
+            var repeat = false;
+            list.forEach(function(node) {
+                repeat |= node["id"] == item["id"];
+            });
+            return repeat;
+        };
+    };
+
+   var arrow = svg.append("svg:defs")
         .selectAll("marker")
         .data(["mid"])
         .enter()
@@ -39,6 +49,7 @@ d3.json("graph.json", function(error, graph) {
                     item.attr("marker-mid", "url(#mid)");
                 }
             });
+    var linkList = graph.graph.edges;
     
     var node = svg.append("g")
         .attr("class", "nodes")
@@ -46,14 +57,14 @@ d3.json("graph.json", function(error, graph) {
         .data(graph.graph.nodes)
         .enter()
             .append("circle")
-            .attr("r", 5)
             .attr("fill", function(d) { return color(d.group); })
             .call(d3.drag()
                 .on("start", dragstarted)
                 .on("drag", dragged)
                 .on("end", dragended));
-
-   var box = svg.append("g")
+    var nodeList = graph.graph.nodes;
+    
+    var box = svg.append("g")
         .attr("class", "boxes")
         .selectAll(".boxes")
         .data(graph.boxes)
@@ -61,22 +72,27 @@ d3.json("graph.json", function(error, graph) {
             .append("g")
             .attr("class", "box")
             .each(function(d) {
-                item = d3.select(this).data([d])
                 var perimeter = d.perimeter;
+                item = d3.select(this).data([d])
                 item.append("g")
                     .attr("class", "nodes")
                     .selectAll(".nodes")
                     .data(d.graph.nodes)
                     .enter()
-                        .filter(function(d) {
-                            var repeat = false;
-                            perimeter.forEach(function(node) {
-                                repeat |= node["id"] == d["id"];
-                            });
-                            return !repeat;
-                        })
+                        .filter(function(d) { return !containedIn(perimeter)(d); })
                         .append("circle")
-                        .attr("r", 5)
+                        .attr("fill", function(d) { return color(d.group); })
+                        .call(d3.drag()
+                            .on("start", dragstarted)
+                            .on("drag", dragged)
+                            .on("end", dragended));
+                svg.append("g")
+                    .attr("class", "nodes")
+                    .selectAll(".nodes")
+                    .data(perimeter)
+                    .enter()
+                        .filter(function(d) { return !containedIn(nodeList)(d); })
+                        .append("circle")
                         .attr("fill", function(d) { return color(d.group); })
                         .call(d3.drag()
                             .on("start", dragstarted)
@@ -95,50 +111,47 @@ d3.json("graph.json", function(error, graph) {
                                 item.attr("marker-mid", "url(#mid)");
                             }
                         });
-            });    
+            });
 
     var allNodes = d3.selectAll(".nodes").selectAll(function() { return this.childNodes; }),
         allLinks = d3.selectAll(".links").selectAll(function() { return this.childNodes; }),
-        nodesList = [],
-        linksList = [];
+        allBoxes = d3.selectAll(".boxes").selectAll(function() { return this.childNodes; }),
+        allNodesList = [],
+        allLinksList = [];
 
     allNodes.append("title")
         .text(function(d) { return d.title; });
+
+    var nodeGather = function(d) { containedIn(allNodesList)(d) ? null : allNodesList.push(d); return d; };
  
-    allNodes.datum(function(d) {
-        var repeat = false;
-        nodesList.forEach(function(node) {
-            repeat |= node["id"] == d["id"];
-        });
-        if (!repeat) {nodesList.push(d)};
-        return d;});
-    allLinks.datum(function(d) {linksList.push(d); return d;});
+    allNodes.datum(nodeGather);
+    allBoxes.datum(function(d) { d.perimeter.forEach(nodeGather); return d; });
+    allLinks.datum(function(d) { allLinksList.push(d); return d; });
 
     simulation
-        .nodes(nodesList)
+        .nodes(allNodesList)
         .on("tick", ticked)
         .force("link")
-        .links(linksList);
+        .links(allLinksList);
 
     function ticked() {
         allLinks.attr("x1", function(d) { return d.source.x; })
             .attr("y1", function(d) { return d.source.y; })
             .attr("x2", function(d) { return d.target.x; })
-            .attr("y2", function(d) { return d.target.y; });
+            .attr("y2", function(d) { return d.target.y; })
+            .attr("points", function(d) {
+                var x0 = d.source.x,
+                    y0 = d.source.y,
+                    x1 = d.target.x,
+                    y1 = d.target.y,
+                    mx = (0.7*x1 + 1.3*x0) / 2,
+                    my = (0.7*y1 + 1.3*y0) / 2;
+                return x0 + "," + y0 + " " + mx + "," + my + " " + x1 + "," + y1;
+            });
 
         allNodes.attr("cx", function(d) { return d.x; })
             .attr("cy", function(d) { return d.y; })
             .attr("r",  function(d) { return d.r; });
-
-        allLinks.attr("points", function(d) {
-            var x0 = d.source.x,
-                y0 = d.source.y,
-                x1 = d.target.x,
-                y1 = d.target.y,
-                mx = (0.7*d.target.x + 1.3*d.source.x) / 2,
-                my = (0.7*d.target.y + 1.3*d.source.y) / 2;
-            return x0 + "," + y0 + " " + mx + "," + my + " " + x1 + "," + y1;
-        });
     }
 });
 

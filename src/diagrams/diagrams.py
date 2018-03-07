@@ -49,6 +49,9 @@ class Node(str):
         obj._uuid = uuid
         return obj
 
+    def __str__(self) -> str:
+        return self.name
+
 
     @property
     def name(self) -> str:
@@ -239,6 +242,50 @@ class Map(dict):
 
 
 
+class Sigma(Map):
+
+    def __init__(self, alpha: Edge = None, beta: Edge = None, from_dict = None) -> None:
+        if from_dict:
+            super().__init__(from_dict)
+        else:
+            super().__init__()
+            if alpha.subject == beta.subject and alpha.arity == beta.arity:
+                g = graph()
+                for edge in zip(alpha.objects, beta.objects):
+                    g.insert_edge(*edge)
+                for partition in g.partitions():
+                    intersect = set(filter(lambda x: x.named, partition))
+                    if len(intersect) == 0:
+                        free_node, *_ = partition
+                    elif len(intersect) == 1:
+                        free_node, *_ = intersect
+                    else:
+                        raise Exception('No such sigma exists - not enough free nodes')
+                    for node in partition - {free_node}:
+                        self[node] = free_node
+                assert not self.range & self.domain
+                # TODO: What is the labelling???
+                # assert not self.domain & diagram.labelling.domain
+            else:
+                raise Exception('No such sigma exists - nonmatching edges')
+
+
+
+class Rho(Map):
+
+    def __init__(self, box_internals: set) -> None:
+        super().__init__()
+        for node in box_internals:
+            self[node] = Node(node.name if node.named else None)
+
+
+    def __call__(self, obj):
+        if isinstance(obj, Sigma):
+            return type(obj)(from_dict=[self(item) for item in obj.items()])
+        else:
+            return super().__call__(obj)
+
+    
 class Diagram(triple):
     '''
     A solo diagram SD is a triple (G, M, l) where:
@@ -259,56 +306,20 @@ class Diagram(triple):
         self.labelling = labelling
 
 
-    def construct_sigma(self, alpha: Edge, beta: Edge) -> Map:
-        if alpha.subject == beta.subject and alpha.arity == beta.arity:
-            g = graph()
-            sigma = Map()
-            for edge in zip(alpha.objects, beta.objects):
-                g.insert_edge(*edge)
-            for partition in g.partitions():
-                intersect = set(filter(lambda x: x.named, partition))
-                if len(intersect) == 0:
-                    free_node, *_ = partition
-                elif len(intersect) == 1:
-                    free_node, *_ = intersect
-                else:
-                    return None
-                for node in partition - {free_node}:
-                    sigma[node] = free_node
-            assert not sigma.range & sigma.domain
-            assert not sigma.domain & self.labelling.domain
-            return sigma
-        return None
-
-    
-    # TODO: Implement rho construction
-    # However, this is technically correct
-    def construct_rho(self, internals: set) -> Callable:
-        copies: dict = {}
-        @wraps
-        def freshcopy(*args, **kwargs):
-            ret = deepcopy(*args, **kwargs)
-            for node in ret.nodes:
-                if node.name in copies.keys():
-                    node.name = copies[node.name]
-                else:
-                    copies[node.name] = node.name
-            return ret
-        return freshcopy
-
-
     def reduce(self):
         # NOTE: edge-edge reduction
         for alpha, beta in ((alpha, beta)
                             for alpha in typefilter(self.graph.edges, Input)
                             for beta in  typefilter(self.graph.edges, Output)):
-            sigma = self.construct_sigma(alpha, beta)
-            if sigma:
+            try:
+                sigma = Sigma(alpha, beta)
                 assert alpha.subject == beta.subject
                 graph = Graph(self.graph - {alpha, beta})
                 boxes = self.boxes
                 l = Map({k:v for k, v in self.labelling.items() if k not in sigma.domain})
                 return Diagram((sigma(graph), sigma(boxes), l))
+            except:
+                pass
 
         # NOTE: edge-box reduction
         for alpha, beta, box in ((alpha, beta, box)
@@ -316,9 +327,9 @@ class Diagram(triple):
                                  for alpha in typefilter(self.graph.edges, Io)
                                  for box in self.boxes
                                  for beta in typefilter(box.graph.edges, Io.inverse)):
-            sigma = self.construct_sigma(alpha, beta)
-            if sigma:
-                rho = self.construct_rho(box.internals)
+            try:
+                rho = Rho(box.internals)
+                sigma = rho(Sigma(alpha, beta))
                 ag = self.graph - {alpha}
                 bg = box.graph - {beta}
                 graph = Graph(ag + rho(bg))
@@ -326,6 +337,8 @@ class Diagram(triple):
                 l = Map({k:v for k, v in self.labelling.items()
                          if k in sigma(graph).nodes | sigma(boxes).nodes})
                 return Diagram((sigma(graph), sigma(boxes), l))
+            except:
+                pass
 
         # NOTE: box-box reduction
         for alpha, beta, abox, bbox in ((alpha, beta, abox, bbox)
@@ -334,9 +347,9 @@ class Diagram(triple):
                                         for alpha in typefilter(abox.graph.edges, Io)
                                         for bbox in self.boxes - {abox}
                                         for beta in typefilter(bbox.graph.edges, Io.inverse)):
-            sigma = self.construct_sigma(alpha, beta)
-            if sigma:
-                rho = self.construct_rho(abox.internals | bbox.internals)
+            try:
+                rho = Rho(abox.internals | bbox.internals)
+                sigma = rho(Sigma(alpha, beta))
                 g = self.graph
                 ag = abox.graph - {alpha}
                 bg = bbox.graph - {beta}
@@ -345,6 +358,8 @@ class Diagram(triple):
                 l = Map({k:v for k, v in self.labelling.items()
                          if k in sigma(graph).nodes | sigma(boxes).nodes})
                 return Diagram((sigma(graph), sigma(boxes), l))
+            except:
+                pass
 
         # NOTE: internal box reduction
         for alpha, beta in ((alpha, beta)
@@ -352,9 +367,9 @@ class Diagram(triple):
                             for box in self.boxes
                             for alpha in typefilter(box.graph.edges, Io)
                             for beta in typefilter(box.graph.edges, Io.inverse)):
-            sigma = self.construct_sigma(alpha, beta)
-            if sigma:
-                rho = self.construct_rho(box.internals)
+            try:
+                rho = Rho(box.internals)
+                sigma = rho(Sigma(alpha, beta))
                 ag = self.graph
                 bg = box.graph - {alpha, beta}
                 graph = Graph(ag + rho(bg))
@@ -362,8 +377,15 @@ class Diagram(triple):
                 l = Map({k:v for k, v in self.labelling.items()
                          if k in sigma(graph).nodes | sigma(boxes).nodes})
                 return Diagram((sigma(graph), sigma(boxes), l))
+            except:
+                pass
 
         return self
+
+
+    @property
+    def nodes(self) -> set:
+        return self.graph.nodes | self.boxes.nodes
 
 
     @property

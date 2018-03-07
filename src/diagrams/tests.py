@@ -7,7 +7,7 @@ from diagrams import Node, Input, Output, Graph, Box, Boxes, Map, Diagram
 
 
 class TestDiagrams(unittest.TestCase):
-    
+
     def test_everything(self):
         # edge-edge
         ee_node = [Node('a'), Node('b'), Node(), Node('p')]
@@ -24,16 +24,16 @@ class TestDiagrams(unittest.TestCase):
 
         loop_node = [Node() for _ in range(10)]
         loop_edges = [Input((loop_node[i-1], loop_node[i])) for i, _ in enumerate(loop_node)]
-        
+
         g = Graph(ee_edges + eb_edges)
         m = Boxes([Box((Graph(g), frozenset(i))) for g, i in eb_boxes])
         l = Map()
 
         d = Diagram((g, m, l))
 
-        print(d.json, d.reduce().json, sep='\n\n')
+        # print(d.json, d.reduce().json, sep='\n\n')
         with open('graph.json', 'w') as file:
-            file.write(dumps(d.json))
+            file.write(dumps(d.reduce().reduce().json))
 
 
 if __name__ == '__main__':
