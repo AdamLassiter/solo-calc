@@ -28,6 +28,7 @@ class graph(dict):
         return frozenset(span)
 
 
+    @property
     def partitions(self) -> frozenset:
         nodes = set(self.keys())
         partitions = frozenset()
