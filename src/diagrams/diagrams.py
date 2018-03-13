@@ -1,9 +1,8 @@
 #! /usr/bin/env python3
 
 from __future__ import annotations
-from collections.abc import Callable, Iterable
-from copy import deepcopy
-from functools import reduce, wraps
+from collections.abc import Iterable
+from functools import reduce
 from uuid import uuid4
 
 from multiset import FrozenMultiset as multiset
@@ -133,7 +132,7 @@ class Graph(multiset):
     '''
     A graph G is a finite multiset of edges.
     '''
-    
+
     def __init__(self, *args) -> None:
         super().__init__(*args)
         for edge in self:
@@ -264,8 +263,6 @@ class Sigma(Map):
                     for node in partition - {free_node}:
                         self[node] = free_node
                 assert not self.range & self.domain
-                # TODO: What is the labelling???
-                # assert not self.domain & diagram.labelling.domain
             else:
                 raise Exception('No such sigma exists - nonmatching edges')
 
@@ -285,26 +282,21 @@ class Rho(Map):
         else:
             return super().__call__(obj)
 
+
     
-class Diagram(triple):
+class Diagram(pair):
     '''
-    A solo diagram SD is a triple (G, M, l) where:
+    A solo diagram SD is a pair (G, M) where:
         G is a graph: graph = multiset<edge>,
-        M is a finite multiset of boxes: box = pair<graph, set<node>>,
-        l is a labelling of nodes: labelling = map<node, node>
+        M is a finite multiset of boxes: box = pair<graph, set<node>>
     '''
 
     def __init__(self, *args) -> None:
-        graph, boxes, labelling = self
+        graph, boxes = self
         for box in boxes:
             assert (graph.nodes - box.internals).isdisjoint(box.internals)
-        for node in labelling.domain:
-            assert isinstance(node, Node)
-            assert node in graph.nodes | boxes.principals
         self.graph = graph
         self.boxes = boxes
-        self.labelling = labelling
-
 
     def reduce(self):
         # NOTE: edge-edge reduction
@@ -316,8 +308,7 @@ class Diagram(triple):
                 assert alpha.subject == beta.subject
                 graph = Graph(self.graph - {alpha, beta})
                 boxes = self.boxes
-                l = Map({k:v for k, v in self.labelling.items() if k not in sigma.domain})
-                return Diagram((sigma(graph), sigma(boxes), l))
+                return Diagram((sigma(graph), sigma(boxes)))
             except:
                 pass
 
@@ -334,9 +325,7 @@ class Diagram(triple):
                 bg = box.graph - {beta}
                 graph = Graph(ag + rho(bg))
                 boxes = self.boxes
-                l = Map({k:v for k, v in self.labelling.items()
-                         if k in sigma(graph).nodes | sigma(boxes).nodes})
-                return Diagram((sigma(graph), sigma(boxes), l))
+                return Diagram((sigma(graph), sigma(boxes)))
             except:
                 pass
 
@@ -355,9 +344,7 @@ class Diagram(triple):
                 bg = bbox.graph - {beta}
                 graph = Graph(g + rho(ag) + rho(bg))
                 boxes = self.boxes
-                l = Map({k:v for k, v in self.labelling.items()
-                         if k in sigma(graph).nodes | sigma(boxes).nodes})
-                return Diagram((sigma(graph), sigma(boxes), l))
+                return Diagram((sigma(graph), sigma(boxes)))
             except:
                 pass
 
@@ -374,9 +361,7 @@ class Diagram(triple):
                 bg = box.graph - {alpha, beta}
                 graph = Graph(ag + rho(bg))
                 boxes = self.boxes
-                l = Map({k:v for k, v in self.labelling.items()
-                         if k in sigma(graph).nodes | sigma(boxes).nodes})
-                return Diagram((sigma(graph), sigma(boxes), l))
+                return Diagram((sigma(graph), sigma(boxes)))
             except:
                 pass
 

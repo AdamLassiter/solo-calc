@@ -2,25 +2,17 @@
 
 import regex as re
 
-from base import Agent, Name
-from inaction import Inaction
-from solo import Input, Output
-from composition import Composition
-from replication import Replication
-from scope import Scope
-from match import Match
-
 
 _input = re.compile(r'\s?(?P<subject>[a-z0-9]+)\s(?P<objects>([a-z0-9]+\s?)+)\s?')
 def build_input(match, names: dict) -> Input:
     subj_name = match['subject']
     if subj_name not in names.keys():
-        names[subj_name] = Name(subj_name)
+        names[subj_name] = str(subj_name)
     subject = names[subj_name]
     objects = []
     for obj_name in match['objects'].split():
         if obj_name not in names.keys():
-            names[obj_name] = Name(obj_name)
+            names[obj_name] = str(obj_name)
         objects.append(names[obj_name])
     return Input(subject, tuple(objects))
 
@@ -29,12 +21,12 @@ output = re.compile(r'\s?\^(?P<subject>[a-z0-9]+)(?P<objects>(\s[a-z0-9]+)+)\s?'
 def build_output(match, names: dict) -> Output:
     subj_name = match['subject']
     if subj_name not in names.keys():
-        names[subj_name] = Name(subj_name)
+        names[subj_name] = str(subj_name)
     subject = names[subj_name]
     objects = []
     for obj_name in match['objects'].split():
         if obj_name not in names.keys():
-            names[obj_name] = Name(obj_name)
+            names[obj_name] = str(obj_name)
         objects.append(names[obj_name])
     return Output(subject, tuple(objects))
 
@@ -61,7 +53,7 @@ def build_scope(match, names: dict) -> Scope:
     agent = build_agent(match['agent'], names)
     for name in match['bindings'].split():
         if name not in names.keys():
-            names[name] = Name(name)
+            names[name] = str(name)
     bindings = frozenset(names[name] for name in match['bindings'].split())
     return Scope(bindings, agent)
 

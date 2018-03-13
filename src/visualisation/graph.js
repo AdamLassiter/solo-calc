@@ -1,6 +1,6 @@
 var margin = {top: 20, right: 20, bottom: 20, left: 20},
-    width = 800 - margin.left - margin.right,
-    height = 450 - margin.top - margin.bottom;
+    width = 1600 - margin.left - margin.right,
+    height = 900 - margin.top - margin.bottom;
 
 var svg = d3.select("body")
     .append("svg")
@@ -14,8 +14,8 @@ var color = d3.scaleOrdinal(d3.schemeCategory20);
 var simulation = d3.forceSimulation()
     .force("link", d3.forceLink().id(function(d) { return d.id; }))
     .force("charge", d3.forceManyBody())
-    .force("x", d3.forceX(width / 2).strength(0.05))
-    .force("y", d3.forceY(height / 2).strength(0.05));
+    .force("x", d3.forceX(width / 2).strength(0.03))
+    .force("y", d3.forceY(height / 2).strength(0.03));
 
 function svgLink(svgElem, dataJoin, filterBy) {
     svgElem.append("g")
@@ -82,6 +82,19 @@ function updateData(filename) {
         var nodeList = graph.graph.nodes,
             node = svgNode(svg, nodeList, function(d) { return true });
         
+        function allNodes() {
+            return d3.selectAll(".nodes").selectAll(function() { return this.childNodes; });
+        };
+        function allNodesList() {
+            var nodes = [];
+            function nodeGather(d) {
+                containedIn(nodes)(d) ? null : nodes.push(d);
+                return d;
+            };
+            allNodes().datum(nodeGather);
+            return nodes;
+        };
+        
         var box = svg.append("g")
             .attr("class", "boxes")
             .selectAll(".boxes")
@@ -92,30 +105,22 @@ function updateData(filename) {
                 .each(function(d) {
                     item = d3.select(this).data([d])
                     svgNode(item, d.graph.nodes, function(_d) { return !containedIn(d.perimeter)(_d); });
-                    svgNode(svg, d.perimeter, function(d) { return !containedIn(nodeList)(d); });
+                    svgNode(svg, d.perimeter, function(d) { return !containedIn(allNodesList())(d); });
                     svgLink(item, d.graph.edges, function(d) { return true });
                });
 
-        var allNodes = d3.selectAll(".nodes").selectAll(function() { return this.childNodes; }),
-            allLinks = d3.selectAll(".links").selectAll(function() { return this.childNodes; }),
+        var allLinks = d3.selectAll(".links").selectAll(function() { return this.childNodes; }),
             allBoxes = d3.selectAll(".boxes").selectAll(function() { return this.childNodes; }),
-            allNodesList = [],
             allLinksList = [];
 
-        allNodes.append("title")
+        allNodes().append("title")
             .text(function(d) { return d.title; });
 
-        function nodeGather(d) {
-            containedIn(allNodesList)(d) ? null : allNodesList.push(d);
-            return d;
-        };
-     
-        allNodes.datum(nodeGather);
         //allBoxes.datum(function(d) { d.perimeter.forEach(nodeGather); return d; });
         allLinks.datum(function(d) { allLinksList.push(d); return d; });
 
         simulation
-            .nodes(allNodesList)
+            .nodes(allNodesList())
             .on("tick", ticked)
             .force("link")
             .links(allLinksList);
@@ -135,7 +140,7 @@ function updateData(filename) {
                     return x0 + "," + y0 + " " + mx + "," + my + " " + x1 + "," + y1;
                 });
 
-            allNodes.attr("cx", function(d) { return d.x; })
+            allNodes().attr("cx", function(d) { return d.x; })
                 .attr("cy", function(d) { return d.y; })
                 .attr("r",  function(d) { return d.r; });
         }
