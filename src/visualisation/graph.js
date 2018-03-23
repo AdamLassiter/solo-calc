@@ -24,14 +24,19 @@ function svgLink(svgElem, dataJoin, filterBy) {
         .data(dataJoin)
         .enter()
             .filter(filterBy)
-            .append("polyline")
-            .attr("stroke-width", function(d) { return Math.sqrt(d.value); })
-            .each(function(d) {
-                item = d3.select(this).data([d])
-                if (d["arrow"] != 0) {
-                    item.attr("marker-mid", "url(#mid)");
-                }
-            });
+            .append("g")
+            .attr("class", "edge")
+            .selectAll("*")
+            .data(function(d) { return d; })
+            .enter()
+                .append("polyline")
+                .attr("stroke-width", function(d) { return Math.sqrt(d.value); })
+                .each(function(d) {
+                    item = d3.select(this).data([d]);
+                    if (d["arrow"] != 0) {
+                        item.attr("marker-mid", "url(#mid)");
+                    }
+                });
 }
 
 function svgNode(svgElem, dataJoin, filterBy) {
@@ -131,7 +136,7 @@ function updateData(graph) {
                 svgLink(item, d.graph.edges, function(d) { return true });
            });
 
-    var allLinks = d3.selectAll(".links").selectAll(function() { return this.childNodes; }),
+    var allLinks = d3.selectAll(".edge").selectAll(function() { return this.childNodes; }),
         allBoxes = d3.selectAll(".boxes").selectAll(function() { return this.childNodes; }),
         allLinksList = [];
 
@@ -176,17 +181,35 @@ function updateData(graph) {
     simulation.alphaTarget(0.1).restart();
 }
 
-function getJSON(r) {
-    $.getJSON("http://0.0.0.0:8001/?reduce=" + r, function(json) {
-        console.log(json);
-        updateData(json);
-    });
+var json;
+function getJSON() {
+    if (json != undefined) {
+        jQuery.ajax({
+            type: "POST",
+            url: "http://localhost:8001",
+            data: JSON.stringify(json),
+            cache: false,
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function(data) { json = data; updateData(json); },
+            failure: function(err) { alert(err); }
+        });
+    } else {
+        jQuery.ajax({
+            type: "GET",
+            url: "http://localhost:8001",
+            cache: false,
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function(data) { json = data; updateData(json); },
+            failure: function(err) { alert(err); }
+        });
+    }
 }
-
-getJSON(0);
+getJSON();
 
 function reduce() {
-    getJSON(1);
+    getJSON();
 }
 
 function dragstarted(d) {

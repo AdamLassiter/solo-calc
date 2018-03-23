@@ -92,6 +92,7 @@ class Edge(tuple):
     An edge E is a tuple of nodes.
     There are two kinds of edges: input edges and output edges.
     '''
+    inverse: type = None
 
     def __init__(self, *args, uuid: str = None) -> None:
         for node in self:
@@ -132,23 +133,25 @@ class Edge(tuple):
             source = self._node.json['id']
             target = self.subject.json['id']
         return [{'source': source, 'target': target, 'value': 1, 'arrow': arrow}] + \
-                [{'source': self._node.json['id'], 'target': obj.json['id'], 'value': 1, 'arrow': 0}
+                [{'source': self._node.json['id'], 'target': obj.json['id'],
+                  'value': 1, 'arrow': 0, 'id': self._uuid}
                  for obj in self.objects]
 
     @staticmethod
     def from_json(json: list, nodes: dict = {}) -> Edge:
-        subject = json[0]['source' if json[0]['arrow'] == 1 else 'target']
+        parity = json[0]['arrow'] == 1
+        subject = json[0]['source' if parity else 'target']['id']
         uuid = json[1]['id']
-        objects = list(map(lambda x: x['target'], json[1:]))
-        return Edge(map(nodes.get, [subject] + objects), uuid=uuid)
+        objects = list(map(lambda x: x['target']['id'], json[1:]))
+        return (Input if parity else Output)(map(nodes.get, [subject] + objects), uuid=uuid)
 
 
 
 class Input(Edge):
-    inverse: type = None
+    pass
 
 class Output(Edge):
-    inverse: type = None
+    pass
 
 Input.inverse = Output
 Output.inverse = Input
@@ -159,6 +162,10 @@ class Graph(multiset):
     '''
     A graph G is a finite multiset of edges.
     '''
+
+    def __new__(cls, *args, uuid: str = None, **kwargs) -> Graph:
+        return super().__new__(cls, *args, **kwargs)
+
 
     def __init__(self, *args, uuid: str = None) -> None:
         super().__init__(*args)
@@ -181,7 +188,7 @@ class Graph(multiset):
     def json(self) -> dict:
         return {'nodes': [node.json for node in (self.nodes
                                                 | {edge._node for edge in self})],
-                'edges': reduce(lambda a, b: a + b.json, self, []),
+                'edges': reduce(lambda a, b: a + [b.json], self, []),
                 'id': self._uuid}
     
 
@@ -198,6 +205,10 @@ class Box(pair):
     A box B is a pair <G, S> where G is a graph and S <= nodes[G].
     S is called the internal nodes of B and nodes[G]\S the principal nodes.
     '''
+
+    def __new__(cls, *args, uuid: str = None, **kwargs) -> Box:
+        return super().__new__(cls, *args, **kwargs)
+
 
     def __init__(self, *args, uuid: str = None) -> None:
         graph, internals = self
@@ -229,8 +240,8 @@ class Box(pair):
     @staticmethod
     def from_json(json: dict, nodes: dict = {}) -> Box:
         graph = Graph.from_json(json['graph'], nodes)
-        internals = graph.nodes - set(json['perimeter'])
-        return Box(graph, internals, uuid=json['id'])
+        internals = graph.nodes - set(map(lambda x: x['id'], json['perimeter']))
+        return Box((graph, internals), uuid=json['id'])
 
 
 
@@ -269,6 +280,7 @@ class Boxes(multiset):
     @staticmethod
     def from_json(json: list, nodes: dict = {}) -> Boxes:
         return Boxes([Box.from_json(j, nodes) for j in json])
+
 
 
 class Map(dict):
@@ -339,7 +351,8 @@ class Rho(Map):
         else:
             return super().__call__(obj)
 
-    
+
+
 class Diagram(pair):
     '''
     A solo diagram SD is a pair (G, M) where:
@@ -436,5 +449,5 @@ class Diagram(pair):
 
     @staticmethod
     def from_json(json: dict, nodes: dict = {}) -> Diagram:
-        return Diagram(Graph.from_json(json['graph'], nodes),
-                       Boxes.from_json(json['boxes'], nodes))
+        return Diagram((Graph.from_json(json['graph'], nodes),
+                        Boxes.from_json(json['boxes'], nodes)))
