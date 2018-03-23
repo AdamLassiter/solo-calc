@@ -18,7 +18,7 @@ def big_diagram():
     eb_edges = [Input((eb[2], *eb[0:2]))]
     eb_boxes = [([Output(eb[2:5]), Input(eb[3:5])], eb[3:5])]
     # box-box
-    """bb = [Node('y'), Node('z'), Node(), Node(), Node(), Node('x')]
+    bb = [Node('y'), Node('z'), Node(), Node(), Node(), Node('x')]
     bb_edges = []
     bb_boxes = [([Output(reversed(bb[0:3]))], bb[0:2]), 
                 ([Input(bb[2:5]), Output(reversed(bb[3:6]))], bb[3:5])]
@@ -26,10 +26,10 @@ def big_diagram():
     ib = [Node(), Node(), Node(), Node('x')]
     ib_edges = []
     ib_boxes = [([Input(reversed(ib[0:2])), Output(ib[1:3]),
-                  Input((ib[3], ib[0], ib[2]))], ib[0:3])]"""
+                  Input((ib[3], ib[0], ib[2]))], ib[0:3])]
     # graph, boxes, diagram
-    g = Graph(ee_edges + eb_edges)# + bb_edges + ib_edges)
-    m = Boxes([Box((Graph(g), frozenset(i))) for g, i in eb_boxes])# + bb_boxes + ib_boxes])
+    g = Graph(ee_edges + eb_edges + bb_edges + ib_edges)
+    m = Boxes([Box((Graph(g), frozenset(i))) for g, i in eb_boxes + bb_boxes + ib_boxes])
     d = Diagram((g, m))
     return d
 

@@ -98,9 +98,22 @@ class Edge(tuple):
             assert isinstance(node, Node)
         self.subject: Node = self[0]
         self.objects = self[1:]
+        self._node = HiddenNode(uuid=uuid)
         self._uuid = uuid if uuid else str(uuid4())
-        self._node = HiddenNode(uuid=self._uuid)
         self.arity = len(self.objects)
+
+
+    @property
+    def _uuid(self) -> str:
+        return self.__uuid
+
+
+    @_uuid.setter
+    def _uuid(self, value: str):
+        self.__uuid = value
+        # Leaving this on causes edges to 'stick' on reduction
+        # Leaving this off causes edges to 'tug' inwards on reduction
+        self._node._uuid = value
 
 
     @property
@@ -262,10 +275,7 @@ class Map(dict):
 
     def __call__(self, obj):
         if not isinstance(obj, Node):
-            ret = type(obj)(map(self, obj)) if hasattr(obj, '__iter__') else obj
-            if hasattr(obj, '_uuid'):
-                ret._uuid = obj._uuid
-            return ret
+            return type(obj)(map(self, obj)) if hasattr(obj, '__iter__') else obj
         else:
             return self.get(obj, obj)
 
@@ -307,6 +317,13 @@ class Sigma(Map):
                 raise Exception('No such sigma exists - nonmatching edges')
 
 
+    def __call__(self, obj):
+        ret = super().__call__(obj)
+        if hasattr(obj, '_uuid'):
+            ret._uuid = obj._uuid
+        return ret
+
+
 
 class Rho(Map):
 
@@ -321,7 +338,6 @@ class Rho(Map):
             return type(obj)(from_dict=[self(item) for item in obj.items()])
         else:
             return super().__call__(obj)
-
 
     
 class Diagram(pair):
@@ -348,11 +364,9 @@ class Diagram(pair):
                 assert alpha.subject == beta.subject
                 graph = Graph(self.graph - {alpha, beta})
                 boxes = self.boxes
-                print('edge-edge')
-                print('out', sigma(graph), sigma(boxes))
                 return Diagram((sigma(graph), sigma(boxes)))
-            except Exception as ex:
-                print(ex)
+            except:
+                pass
 
         # NOTE: edge-box reduction
         for alpha, beta, box in ((alpha, beta, box)
@@ -367,7 +381,6 @@ class Diagram(pair):
                 bg = box.graph - {beta}
                 graph = Graph(ag + rho(bg))
                 boxes = self.boxes
-                print('edge-box')
                 return Diagram((sigma(graph), sigma(boxes)))
             except:
                 pass
@@ -385,7 +398,6 @@ class Diagram(pair):
                 bg = box.graph - {alpha, beta}
                 graph = Graph(ag + rho(bg))
                 boxes = self.boxes
-                print('internal box')
                 return Diagram((sigma(graph), sigma(boxes)))
             except:
                 pass
@@ -405,7 +417,6 @@ class Diagram(pair):
                 bg = bbox.graph - {beta}
                 graph = Graph(g + rho(ag) + rho(bg))
                 boxes = self.boxes
-                print('box-box')
                 return Diagram((sigma(graph), sigma(boxes)))
             except:
                 pass
