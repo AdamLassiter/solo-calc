@@ -2,6 +2,7 @@
 
 from collections.abc import Hashable
 
+
 class graph(dict):
 
     def insert_node(self, node: Hashable) -> None:

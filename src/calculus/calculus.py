@@ -35,6 +35,10 @@ class Agent:
         raise NotImplemented
 
 
+    def reduce(self) -> Agent:
+        return self
+
+
     @property
     def names(self) -> Set[str]:
         raise NotImplemented

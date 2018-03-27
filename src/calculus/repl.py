@@ -2,9 +2,11 @@
 
 import regex as re
 
+from calculus import Solo, Composition, Replication, Scope, Agent
+
 
 _input = re.compile(r'\s?(?P<subject>[a-z0-9]+)\s(?P<objects>([a-z0-9]+\s?)+)\s?')
-def build_input(match, names: dict) -> Input:
+def build_input(match, names: dict) -> Solo:
     subj_name = match['subject']
     if subj_name not in names.keys():
         names[subj_name] = str(subj_name)
@@ -14,11 +16,11 @@ def build_input(match, names: dict) -> Input:
         if obj_name not in names.keys():
             names[obj_name] = str(obj_name)
         objects.append(names[obj_name])
-    return Input(subject, tuple(objects))
+    return Solo(subject, tuple(objects), True)
 
 
 output = re.compile(r'\s?\^(?P<subject>[a-z0-9]+)(?P<objects>(\s[a-z0-9]+)+)\s?')
-def build_output(match, names: dict) -> Output:
+def build_output(match, names: dict) -> Solo:
     subj_name = match['subject']
     if subj_name not in names.keys():
         names[subj_name] = str(subj_name)
@@ -28,12 +30,7 @@ def build_output(match, names: dict) -> Output:
         if obj_name not in names.keys():
             names[obj_name] = str(obj_name)
         objects.append(names[obj_name])
-    return Output(subject, tuple(objects))
-
-
-inaction = re.compile(r'\s?0\s?')
-def build_inaction(match, names: dict) -> Inaction:
-    return Inaction()
+    return Solo(subject, tuple(objects), False)
 
 
 composition = re.compile(r'\s?\((?<agents>(?<agent>([^|()]|(?<rec>\((?:[^()]++|(?&rec))*\)))+)(\|(?&agents))?)\)\s?')
@@ -61,7 +58,7 @@ def build_scope(match, names: dict) -> Scope:
 def build_agent(string: str, names: dict=None) -> Agent:
     if names is None:
         names = dict()
-    for regex, build_func in [(_input, build_input), (output, build_output), (inaction, build_inaction),
+    for regex, build_func in [(_input, build_input), (output, build_output),
                                (scope, build_scope), (composition, build_composition),
                                (replication, build_replication)]:
         match = regex.fullmatch(string)
@@ -81,7 +78,7 @@ def reduce(agent: Agent, verbose=False) -> Agent:
 
 
 def repl():
-    agent = Inaction()
+    agent = Solo('print', tuple('null'), True)
     print('solo calculus repl (q to quit)...')
     while True:
         user_in = input('>> ')
