@@ -2,7 +2,7 @@
 
 import unittest
 
-from calculus import build_agent, reduce, Agent
+from repl import build_agent, reduce, Agent
 
 
 class TestCase(unittest.TestCase):

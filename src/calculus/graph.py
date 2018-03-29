@@ -2,6 +2,7 @@
 
 from collections.abc import Hashable
 
+
 class graph(dict):
 
     def insert_node(self, node: Hashable) -> None:
@@ -28,6 +29,7 @@ class graph(dict):
         return frozenset(span)
 
 
+    @property
     def partitions(self) -> frozenset:
         nodes = set(self.keys())
         partitions = frozenset()

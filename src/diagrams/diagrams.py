@@ -1,9 +1,8 @@
 #! /usr/bin/env python3
 
 from __future__ import annotations
-from collections.abc import Callable, Iterable
-from copy import deepcopy
-from functools import reduce, wraps
+from collections.abc import Iterable
+from functools import reduce
 from uuid import uuid4
 
 from multiset import FrozenMultiset as multiset
@@ -49,6 +48,7 @@ class Node(str):
         obj._uuid = uuid
         return obj
 
+
     def __str__(self) -> str:
         return self.name
 
@@ -73,6 +73,11 @@ class Node(str):
         return {'id': self._uuid, 'title': self._name, 'r': self.size}
 
 
+    @staticmethod
+    def from_json(json: dict, nodes: dict = {}) -> Node:
+        return Node(json['title'], json['id'])
+
+
 
 class HiddenNode(Node):
     '''
@@ -87,14 +92,29 @@ class Edge(tuple):
     An edge E is a tuple of nodes.
     There are two kinds of edges: input edges and output edges.
     '''
+    inverse: type = None
 
-    def __init__(self, *args) -> None:
+    def __init__(self, *args, uuid: str = None) -> None:
         for node in self:
             assert isinstance(node, Node)
         self.subject: Node = self[0]
         self.objects = self[1:]
-        self._edge = HiddenNode()
+        self._node = HiddenNode(uuid=uuid)
+        self._uuid = uuid if uuid else str(uuid4())
         self.arity = len(self.objects)
+
+
+    @property
+    def _uuid(self) -> str:
+        return self.__uuid
+
+
+    @_uuid.setter
+    def _uuid(self, value: str):
+        self.__uuid = value
+        # Leaving this on causes edges to 'stick' on reduction
+        # Leaving this off causes edges to 'tug' inwards on reduction
+        self._node._uuid = value
 
 
     @property
@@ -103,26 +123,35 @@ class Edge(tuple):
 
     
     @property
-    def json(self) -> object:
+    def json(self) -> list:
         if type(self) == Input:
             arrow = 1
             source = self.subject.json['id']
-            target = self._edge.json['id']
+            target = self._node.json['id']
         else:
             arrow = -1
-            source = self._edge.json['id']
+            source = self._node.json['id']
             target = self.subject.json['id']
         return [{'source': source, 'target': target, 'value': 1, 'arrow': arrow}] + \
-                [{'source': self._edge.json['id'], 'target': obj.json['id'], 'value': 1, 'arrow': 0}
+                [{'source': self._node.json['id'], 'target': obj.json['id'],
+                  'value': 1, 'arrow': 0, 'id': self._uuid}
                  for obj in self.objects]
+
+    @staticmethod
+    def from_json(json: list, nodes: dict = {}) -> Edge:
+        parity = json[0]['arrow'] == 1
+        subject = json[0]['source' if parity else 'target']['id']
+        uuid = json[1]['id']
+        objects = list(map(lambda x: x['target']['id'], json[1:]))
+        return (Input if parity else Output)(map(nodes.get, [subject] + objects), uuid=uuid)
 
 
 
 class Input(Edge):
-    inverse: type = None
+    pass
 
 class Output(Edge):
-    inverse: type = None
+    pass
 
 Input.inverse = Output
 Output.inverse = Input
@@ -133,11 +162,16 @@ class Graph(multiset):
     '''
     A graph G is a finite multiset of edges.
     '''
-    
-    def __init__(self, *args) -> None:
+
+    def __new__(cls, *args, uuid: str = None, **kwargs) -> Graph:
+        return super().__new__(cls, *args, **kwargs)
+
+
+    def __init__(self, *args, uuid: str = None) -> None:
         super().__init__(*args)
         for edge in self:
             assert isinstance(edge, Edge)
+        self._uuid = uuid if uuid else str(uuid4())
 
 
     @property
@@ -151,10 +185,18 @@ class Graph(multiset):
 
 
     @property
-    def json(self) -> object:
+    def json(self) -> dict:
         return {'nodes': [node.json for node in (self.nodes
-                                                | {edge._edge for edge in self})],
-                'edges': reduce(lambda a, b: a + b.json, self, [])}
+                                                | {edge._node for edge in self})],
+                'edges': reduce(lambda a, b: a + [b.json], self, []),
+                'id': self._uuid}
+    
+
+    @staticmethod
+    def from_json(json: dict, nodes: dict = {}) -> Graph:
+        for j in json['nodes']:
+            nodes[j['id']] = Node.from_json(j, nodes)
+        return Graph([Edge.from_json(j, nodes) for j in json['edges']], uuid=json['id'])
 
 
 
@@ -164,13 +206,18 @@ class Box(pair):
     S is called the internal nodes of B and nodes[G]\S the principal nodes.
     '''
 
-    def __init__(self, *args) -> None:
+    def __new__(cls, *args, uuid: str = None, **kwargs) -> Box:
+        return super().__new__(cls, *args, **kwargs)
+
+
+    def __init__(self, *args, uuid: str = None) -> None:
         graph, internals = self
         for node in internals:
             assert isinstance(node, Node)
         assert internals <= graph.nodes
         self.graph = graph
         self.internals = internals
+        self._uuid = uuid if uuid else str(uuid4())
 
 
     @property
@@ -184,9 +231,17 @@ class Box(pair):
 
 
     @property
-    def json(self) -> object:
-        return {'graph': self.graph.json,
+    def json(self) -> dict:
+        return {'id': self._uuid,
+                'graph': self.graph.json,
                 'perimeter': [node.json for node in self.principals]}
+
+
+    @staticmethod
+    def from_json(json: dict, nodes: dict = {}) -> Box:
+        graph = Graph.from_json(json['graph'], nodes)
+        internals = graph.nodes - set(map(lambda x: x['id'], json['perimeter']))
+        return Box((graph, internals), uuid=json['id'])
 
 
 
@@ -195,10 +250,11 @@ class Boxes(multiset):
     A typechecked multiset of boxes, M.
     '''
 
-    def __init__(self, *args):
+    def __init__(self, *args, uuid: str = None):
         super().__init__(*args)
         for box in self:
             assert isinstance(box, Box)
+        self._uuid = uuid if uuid else str(uuid4())
 
 
     @property
@@ -217,8 +273,13 @@ class Boxes(multiset):
 
 
     @property
-    def json(self) -> object:
+    def json(self) -> list:
         return [box.json for box in self]
+
+    
+    @staticmethod
+    def from_json(json: list, nodes: dict = {}) -> Boxes:
+        return Boxes([Box.from_json(j, nodes) for j in json])
 
 
 
@@ -226,7 +287,7 @@ class Map(dict):
 
     def __call__(self, obj):
         if not isinstance(obj, Node):
-            return type(obj)(map(self, obj)) if len(obj) else obj
+            return type(obj)(map(self, obj)) if hasattr(obj, '__iter__') else obj
         else:
             return self.get(obj, obj)
 
@@ -264,10 +325,15 @@ class Sigma(Map):
                     for node in partition - {free_node}:
                         self[node] = free_node
                 assert not self.range & self.domain
-                # TODO: What is the labelling???
-                # assert not self.domain & diagram.labelling.domain
             else:
                 raise Exception('No such sigma exists - nonmatching edges')
+
+
+    def __call__(self, obj):
+        ret = super().__call__(obj)
+        if hasattr(obj, '_uuid'):
+            ret._uuid = obj._uuid
+        return ret
 
 
 
@@ -285,26 +351,21 @@ class Rho(Map):
         else:
             return super().__call__(obj)
 
-    
-class Diagram(triple):
+
+
+class Diagram(pair):
     '''
-    A solo diagram SD is a triple (G, M, l) where:
+    A solo diagram SD is a pair (G, M) where:
         G is a graph: graph = multiset<edge>,
-        M is a finite multiset of boxes: box = pair<graph, set<node>>,
-        l is a labelling of nodes: labelling = map<node, node>
+        M is a finite multiset of boxes: box = pair<graph, set<node>>
     '''
 
     def __init__(self, *args) -> None:
-        graph, boxes, labelling = self
+        graph, boxes = self
         for box in boxes:
             assert (graph.nodes - box.internals).isdisjoint(box.internals)
-        for node in labelling.domain:
-            assert isinstance(node, Node)
-            assert node in graph.nodes | boxes.principals
         self.graph = graph
         self.boxes = boxes
-        self.labelling = labelling
-
 
     def reduce(self):
         # NOTE: edge-edge reduction
@@ -316,8 +377,7 @@ class Diagram(triple):
                 assert alpha.subject == beta.subject
                 graph = Graph(self.graph - {alpha, beta})
                 boxes = self.boxes
-                l = Map({k:v for k, v in self.labelling.items() if k not in sigma.domain})
-                return Diagram((sigma(graph), sigma(boxes), l))
+                return Diagram((sigma(graph), sigma(boxes)))
             except:
                 pass
 
@@ -334,9 +394,24 @@ class Diagram(triple):
                 bg = box.graph - {beta}
                 graph = Graph(ag + rho(bg))
                 boxes = self.boxes
-                l = Map({k:v for k, v in self.labelling.items()
-                         if k in sigma(graph).nodes | sigma(boxes).nodes})
-                return Diagram((sigma(graph), sigma(boxes), l))
+                return Diagram((sigma(graph), sigma(boxes)))
+            except:
+                pass
+
+        # NOTE: internal box reduction
+        for alpha, beta in ((alpha, beta)
+                            for Io in {Input, Output}
+                            for box in self.boxes
+                            for alpha in typefilter(box.graph.edges, Io)
+                            for beta in typefilter(box.graph.edges, Io.inverse)):
+            try:
+                rho = Rho(box.internals)
+                sigma = rho(Sigma(alpha, beta))
+                ag = self.graph
+                bg = box.graph - {alpha, beta}
+                graph = Graph(ag + rho(bg))
+                boxes = self.boxes
+                return Diagram((sigma(graph), sigma(boxes)))
             except:
                 pass
 
@@ -355,31 +430,9 @@ class Diagram(triple):
                 bg = bbox.graph - {beta}
                 graph = Graph(g + rho(ag) + rho(bg))
                 boxes = self.boxes
-                l = Map({k:v for k, v in self.labelling.items()
-                         if k in sigma(graph).nodes | sigma(boxes).nodes})
-                return Diagram((sigma(graph), sigma(boxes), l))
+                return Diagram((sigma(graph), sigma(boxes)))
             except:
                 pass
-
-        # NOTE: internal box reduction
-        for alpha, beta in ((alpha, beta)
-                            for Io in {Input, Output}
-                            for box in self.boxes
-                            for alpha in typefilter(box.graph.edges, Io)
-                            for beta in typefilter(box.graph.edges, Io.inverse)):
-            try:
-                rho = Rho(box.internals)
-                sigma = rho(Sigma(alpha, beta))
-                ag = self.graph
-                bg = box.graph - {alpha, beta}
-                graph = Graph(ag + rho(bg))
-                boxes = self.boxes
-                l = Map({k:v for k, v in self.labelling.items()
-                         if k in sigma(graph).nodes | sigma(boxes).nodes})
-                return Diagram((sigma(graph), sigma(boxes), l))
-            except:
-                pass
-
         return self
 
 
@@ -389,6 +442,12 @@ class Diagram(triple):
 
 
     @property
-    def json(self) -> object:
+    def json(self) -> dict:
         return {'graph': Graph(self.graph - multiset((box.graph for box in self.boxes))).json,
                 'boxes': self.boxes.json}
+
+
+    @staticmethod
+    def from_json(json: dict, nodes: dict = {}) -> Diagram:
+        return Diagram((Graph.from_json(json['graph'], nodes),
+                        Boxes.from_json(json['boxes'], nodes)))
