@@ -28,11 +28,15 @@ def fresh_name(working_set: Set[str], name_hints: List[str] = ['u']) -> List[str
 class Agent:
 
     def __str__(self) -> str:
-        raise NotImplemented
+        raise NotImplementedError
+
+    
+    def equals(self, other) -> bool:
+        raise NotImplementedError
 
 
     def flatten(self) -> Agent:
-        raise NotImplemented
+        raise NotImplementedError
 
 
     def reduce(self) -> Agent:
@@ -41,12 +45,12 @@ class Agent:
 
     @property
     def names(self) -> Set[str]:
-        raise NotImplemented
+        raise NotImplementedError
 
 
     @property
     def bound_names(self) -> Set[str]:
-        raise NotImplemented
+        raise NotImplementedError
 
 
     @property
@@ -78,80 +82,6 @@ class Scope(Agent):
             return type(self)(child, self.scope)
 
 
-    def construct_sigma(self, input: Solo, output: Solo,
-                        bound_names: Set[str] = set()) -> Tuple[Sigma, Set[str]]:
-        if any([input.subject != output.subject,
-                input.arity != output.arity,
-                input.parity == output.parity]):
-            return None, None
-        g = graph()
-        sigma = Sigma()
-        fresh_names: Set[str] = set()
-        for i_obj, o_obj in zip(input.objects, output.objects):
-            g.insert_edge(i_obj, o_obj)
-        for partition in g.partitions:
-            intersect = partition - (self.scope | bound_names)
-            if len(intersect) == 0:
-                free_name, *_ = fresh_name(self.names | fresh_names)
-                fresh_names |= {free_name}
-            elif len(intersect) == 1:
-                free_name, *_ = intersect
-            else:
-                return None, None
-            for name in partition - {free_name}:
-                sigma[name] = free_name
-        return sigma, fresh_names
-
-
-    def reduce(self) -> Agent:
-        def typefilter(agent_t: type, agents: Iterator) -> Iterator:
-            return filter(lambda x: isinstance(x, agent_t), agents)
-
-        agent = self.flatten()
-        composition = agent.child.children
-
-        for input, output in ((input, output)
-                for input in typefilter(Solo, composition)
-                for output in typefilter(Solo, composition - {input})):
-            sigma, fresh_names = agent.construct_sigma(input, output)
-            if sigma is not None:
-                return sigma(Scope(Composition(composition - {input, output}),
-                                   agent.scope | fresh_names))
-        
-        for input, output, replicator in ((input, output, replicator)
-                for input in typefilter(Solo, composition)
-                for replicator in typefilter(Replication, composition)
-                for output in typefilter(Solo, replicator.child.child.children)):
-            bound_names = replicator.child.scope
-            sigma, fresh_names = agent.construct_sigma(input, output, bound_names)
-            if sigma is not None:
-                return Scope(Composition(composition | {replicator.child}), agent.scope)
-
-        for input, input_rep, output, output_rep in ((input, input_rep, output, output_rep)
-                for input_rep in typefilter(Replication, composition)
-                for input in typefilter(Solo, input_rep.child.child.children)
-                for output_rep in typefilter(Replication, composition)
-                for output in typefilter(Solo, output_rep.child.child.children)):
-            bound_names = input_rep.child.scope | output_rep.child.scope
-            sigma, fresh_names = agent.construct_sigma(input, output, bound_names)
-            if sigma is not None:
-                return Scope(Composition(composition | {input_rep.child, output_rep.child}),
-                             agent.scope)
-
-        """ NOTE: This is simply a special case of the above where input_rep == output_rep
-        for input, output, replicator in ((input, output, replicator)
-                for replicator in typefilter(Replication, composition)
-                for input in typefilter(Solo, replicator.child.child.children)
-                for output in typefilter(Solo, replicator.child.child.children - {input})):
-            bound_names = replicator.child.scope
-            sigma, fresh_names = agent.construct_sigma(input, output, bound_names)
-            if sigma is not None:
-                return Scope(Composition(composition | {replicator.child}), agent.scope)
-        """
-
-        return agent
-    
-
     @property
     def names(self) -> Set[str]:
         return self.scope | self.child.names
@@ -171,14 +101,6 @@ class Composition(Agent):
 
     def __str__(self) -> str:
         return '(%s)' % (' | '.join(map(str, self.children)),)
-
-
-    def construct_alpha(self, child: Scope) -> Alpha:
-        others = Composition(self.children - {child})
-        bound_names = list(child.scope)
-        fresh_names: List[str] = fresh_name(others.names, bound_names)
-        alpha = Alpha(zip(bound_names, fresh_names))
-        return alpha
 
 
     def flatten(self) -> Agent:
@@ -282,7 +204,7 @@ class Solo(Agent):
 
 
 
-class CanonicalAgent:
+class CanonicalAgent(Agent):
 
     @staticmethod
     def typefilter(agent_t: type, agents: Iterator) -> Iterator:
@@ -291,27 +213,70 @@ class CanonicalAgent:
 
     def __init__(self, agent: Union[Agent, Tuple[Set[str],
                                                  Set[Solo],
-                                                 Set[Replication]]] = None)-> None:
+                                                 Set[CanonicalAgent]]] = None)-> None:
+        self.scope: Set[str] = None
+        self.solos: Set[Solo] = None
+        self.replicators: Set[CanonicalAgent] = None
         if isinstance(agent, Agent):
-            self.scope: Set[str] = set()
-            self.solos: Set[Solo] = set()
-            self.replicators: Set[Replication] = set()
-            self |= agent
+            base = CanonicalAgent((set(), set(), set()))
+            base |= agent
+            self.scope, self.solos, self.replicators = base
         elif isinstance(agent, tuple):
             self.scope, self.solos, self.replicators = agent
-    
+
+
+    def __iter__(self) -> Iterable:
+        yield self.scope
+        yield self.solos
+        yield self.replicators
+
+
+    def __str__(self) -> str:
+        return '(%s)(%s)' % (' '.join(self.scope),
+                             ' | '.join(set(map(str, self.solos)) 
+                                        | {'!%s' % r for r in self.replicators}))
+
+
+    def construct_alpha(self, collisions: Set[str]) -> Alpha:
+        sorted_collisions = list(collisions)
+        fresh_names = fresh_name(self.names, sorted_collisions)
+        return Alpha(zip(sorted_collisions, fresh_names))
+
+
+    def construct_sigma(self, input: Solo, output: Solo,
+                        bound_names: Set[str] = set()) -> Tuple[Sigma, Set[str]]:
+        if any([input.subject != output.subject,
+                input.arity != output.arity,
+                input.parity == output.parity]):
+            return None, None
+        g = graph()
+        sigma = Sigma()
+        fresh_names: Set[str] = set()
+        for i_obj, o_obj in zip(input.objects, output.objects):
+            g.insert_edge(i_obj, o_obj)
+        for partition in g.partitions:
+            intersect = partition - (self.scope | bound_names)
+            if len(intersect) == 0:
+                free_name, *_ = fresh_name(self.names | fresh_names)
+                fresh_names |= {free_name}
+            elif len(intersect) == 1:
+                free_name, *_ = intersect
+            else:
+                return None, None
+            for name in partition - {free_name}:
+                sigma[name] = free_name
+        return sigma, fresh_names
+
 
     def __or__(self, agent: Agent) -> CanonicalAgent:
         if isinstance(agent, Scope):
-            collision = list(agent.scope & self.names)
-            if collision:
-                fresh_names = fresh_name(self.names, collision)
-                alpha = Alpha(zip(collision, fresh_names))
-                return self | alpha(agent)
+            collisions = agent.scope & self.names
+            if collisions:
+                return self | self.construct_alpha(collisions)(agent)
             else:
-                return type(self)((self.scope | agent.scope,
-                                   self.solos,
-                                   self.replicators)) | agent.child
+                ret = self | agent.child
+                ret.scope |= agent.scope
+                return ret
 
         elif isinstance(agent, Composition):
             return reduce(type(self).__or__, agent.children, self)
@@ -323,22 +288,21 @@ class CanonicalAgent:
                 y, *_ = fresh_name(agent.names, ['y'])
                 z = list(q.free_names)
                 ws = fresh_name(agent.names | {y}, z)
-                alpha = Alpha(zip(z, fresh_names))
+                alpha = Alpha(zip(z, ws))
                 P = p | Solo(y, z, True)
                 Q = Scope(Composition(set({alpha(q), Solo(y, z, False)})), set(ws))
                 return self | Scope(Composition(set({P.to_agent, Q})), set({y}))
             else:
-                # TODO: Check no collisions
+                assert p.replicators == set()
+                collisions = self.scope & p.scope
                 return type(self)((self.scope,
                                    self.solos,
-                                   self.replicators | {p.to_agent}))
+                                   self.replicators | {self.construct_alpha(collisions)(p)}))
 
         elif isinstance(agent, Solo):
-            collisions = list(self.scope & agent.names)
-            fresh_names = fresh_name(self.names, collisions)
-            alpha = Alpha(zip(collisions, fresh_names))
+            collisions = self.scope & agent.names
             return type(self)((self.scope,
-                               self.solos | {alpha(agent)},
+                               self.solos | {self.construct_alpha(collisions)(agent)},
                                self.replicators))
 
         else:
@@ -350,20 +314,50 @@ class CanonicalAgent:
         return self
 
 
+    def reduce(self) -> CanonicalAgent:
+        for input, output in ((input, output)
+                              for input in self.solos
+                              for output in self.solos - {input}):
+            sigma, rescope = self.construct_sigma(input, output)
+            if sigma:
+                scope, solos, replicators = self
+                solos -= {input, output}
+                return sigma(CanonicalAgent((scope | rescope, solos, replicators)))
+
+        for input, replicator, output in ((input, replicator, output)
+                              for input in self.solos
+                              for replicator in self.replicators
+                              for output in replicator.solos):
+            sigma, _ = self.construct_sigma(input, output, replicator.scope)
+            if sigma:
+                return self | replicator
+
+        for input, ireplicator, output, oreplicator in ((input, ireplicator, output, oreplicator)
+                              for ireplicator in self.replicators
+                              for input in ireplicator.solos
+                              for oreplicator in self.replicators
+                              for output in oreplicator.solos):
+            sigma, _ = self.construct_sigma(input, output, ireplicator.scope | oreplicator.scope)
+            if sigma:
+                return self | ireplicator | oreplicator
+
+        return self
+
+
     @property
     def to_agent(self) -> Agent:
-        return Scope(Composition(self.solos | self.replicators), self.scope)
+        return Scope(Composition(self.solos | set(map(Replication, self.replicators))), self.scope)
     
 
     @property
     def names(self) -> Set[str]:
         return self.scope \
             | set(reduce(lambda red, solo: red | solo.names, self.solos, set())) \
-            | set(reduce(lambda red, rep: red | rep.child.names, self.replicators, set()))
+            | set(reduce(lambda red, rep: red | rep.names, self.replicators, set()))
 
 
 
-T = TypeVar('T', Agent, str)
+T = TypeVar('T', Solo, Scope, Composition, Replication, CanonicalAgent, Agent, str)
 class Match(dict):
 
     def __init__(self, *args, in_scope: multiset = multiset(),
@@ -380,6 +374,7 @@ class Match(dict):
         elif isinstance(agent, Scope):
             self.in_scope |= agent.scope
             if self.fuse:
+                # FIXME: This can be removed by culling unused scopes
                 return type(agent)(self(agent.child), set(agent.scope - self.keys()))
             else:
                 return type(agent)(self(agent.child), set(map(self, agent.scope)))
@@ -389,6 +384,8 @@ class Match(dict):
             return type(agent)(self(agent.subject),
                                tuple(map(self, agent.objects)),
                                agent.parity)
+        elif isinstance(agent, CanonicalAgent):
+            return type(agent)(self(agent.to_agent))
         else:
             assert isinstance(agent, str)
             return type(agent)(self[agent])
@@ -434,9 +431,10 @@ if __name__ == '__main__':
                                                                 Solo(a, (c,), False)}))),
                                    Solo(p, (a,b,c), True)})), set({p, b})),
             2)]
-
+    
     for agent, n in ags:
         canonical = CanonicalAgent(agent)
-        redux = reduce(lambda rs, i: rs + [rs[-1].reduce()], range(n), [agent])
-        print(*redux, sep='\n-> ')
-        print()
+        reduxes = [reduce(lambda rs, i: rs + [rs[-1].reduce()], range(n), [ag])
+                   for ag in [canonical]]
+        print('\n\n'.join(('\n-> '.join(map(str, redux)) for redux in reduxes)))
+        print('----------------')
