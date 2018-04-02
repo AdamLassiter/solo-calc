@@ -20,7 +20,7 @@ Currently the system exists in three major parts.
 
 ### Calculus
 Found under the [calculus/](/src/calculus) directory, this provides an implementation of the solo calculus, as well as an interface to interact with.  
-Executing the [tests.py](/src/calculus/tests.py) file runs all available unit tests, while the [calculus.py](src/calculus/calculus.py) file provides a REPL interface.
+Executing the [tests.py](/src/calculus/tests.py) file runs all available unit tests, while the [rest.py](src/calculus/rest.py) file provides a REPL interface.
 
 ### Diagrams
 Found under the [diagrams/](/src/diagrams) directory, this provides an implementation only of solo diagrams.  
