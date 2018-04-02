@@ -1,7 +1,6 @@
 \documentclass{article}
 
-\input{../preamble}
-
+\input{preamble}
 
 \title{A Graphical Representation of the Solos Calculus \\
 	\large CM30082 Dissertation}
@@ -9,39 +8,50 @@
 
 \author{Adam Lassiter}
 
-\date{October 2017}
-
-
+\date{May 2018}
 
 \begin{document}
+    
+    \maketitle
+    \vspace{\fill}
+    \begin{abstract}
+        The project seeks to provide an implementation of both the Solos calculus, for which there exists an encoding of the $\pi$-calculus within itself, and also of Solos diagrams, an intuitively graphical representation of the calculus. These diagrams can then aid in understanding of reductions of process calculi, while maintaining a clean and simple language with strong provable properties.
+        Furthermore, the design of the Solos calculus is such that it is fully asynchronous. That is, unlike in the $\pi$-calculus where processes `block' while waiting for inputs/outputs, it is shown through the construction of the Solos calculus that no such system is required --- however there still exists a way of building such a system to give the effects of the $\pi$-calculus should it be desired.
+        For these reasons, the Solos calculus is found to be an interesting alternative to the more common $\pi$-calculus and is therefore chosen as the project focus.
+    \end{abstract}
+    \vspace{\fill}
+    \pagebreak
+    
+    \tableofcontents
+    \pagebreak
 
-\maketitle
+    \section{Introduction}
 
-\vfill
+    \section{Literature}
+        \input{lit-review/lambda-calc}
+        \input{lit-review/ccs}
+        \input{lit-review/pi-calc}
+        \input{lit-review/fusion-calc}
+        \input{lit-review/solo-calc}
 
-\tableofcontents
+    \section{Technology}
+        \input{lit-review/graph-vis}
 
-\pagebreak
+    \section{Implementation}
+        \subsection{Solo Calculus}
+        \subsection{Solo Diagrams}
+        \subsection{Visualisation}
 
+    \section{Conclusion}
 
+    \section{References}
+        \bibliography{dissertation}
 
-    \input{lit-review/lit-review}
+    \section{Agreement}
+        \subsection{Student Signature}
+            \vspace{1in}
 
-
-
-\pagebreak
-
-\section{References}
-
-    \bibliography{lit-review}
-
-
-%\section{Agreement}
-%\subsection{Student Signature}
-%\vspace{1in}
-
-%\subsection{Supervisor Signature}
-%\vspace{1in}
-
+        \subsection{Supervisor Signature}
+            \vspace{1in}
 
 \end{document}
