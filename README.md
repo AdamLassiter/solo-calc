@@ -5,7 +5,7 @@ This forms the submission for CM30082 Dissertation, MComp Comp.Sci. w/ Maths. fo
 ## Prerequisites
 The following do not represent minimum requirements, but those used in production and testing.
 * Python 3.7
-    * Multiset >= v2.0.0
+    * Multiset >= 2.0.0
     * regex >= 2018.2.8
     * flask >= 0.12.0
         * flask_restful >= 0.3.6
