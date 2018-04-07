@@ -2,9 +2,8 @@
 
 \input{preamble}
 
-\title{A Graphical Representation of the Solos Calculus \\
-	\large CM30082 Dissertation}
-% Dance of the Solos
+\title{Dance of the Solos \\
+    \large On the graphical representation of Solo Diagrams}
 
 \author{Adam Lassiter}
 
@@ -15,23 +14,24 @@
     \maketitle
     \vspace{\fill}
     \begin{abstract}
-        The project seeks to provide an implementation of both the Solos calculus, for which there exists an encoding of the $\pi$-calculus within itself, and also of Solos diagrams, an intuitively graphical representation of the calculus. These diagrams can then aid in understanding of reductions of process calculi, while maintaining a clean and simple language with strong provable properties.
-        Furthermore, the design of the Solos calculus is such that it is fully asynchronous. That is, unlike in the $\pi$-calculus where processes `block' while waiting for inputs/outputs, it is shown through the construction of the Solos calculus that no such system is required --- however there still exists a way of building such a system to give the effects of the $\pi$-calculus should it be desired.
-        For these reasons, the Solos calculus is found to be an interesting alternative to the more common $\pi$-calculus and is therefore chosen as the project focus.
+        The project seeks to provide an implementation of both the Solo Calculus and also of Solo Diagrams, an intuitively graphical representation of the calculus. These diagrams can then aid in understanding of reductions of process calculi, while maintaining a clean and simple language with strong provable properties.
     \end{abstract}
     \vspace{\fill}
     \pagebreak
-
+    
     \renewcommand{\abstractname}{Acknowledgements}
+    \null\vspace{\fill}
     \begin{abstract}
         I would like to express my gratitude to Prof. Guy McCusker for his fantastic supervision of this project throughout.
     \end{abstract}
     \vspace{\fill}
+    \pagebreak
+    
     \tableofcontents
-    \vspace{\fill}
     \pagebreak
 
     \section{Introduction}
+        \input{introduction/introduction}
 
     \section{Literature}
         \input{lit-review/lambda-calc}
