@@ -1,14 +1,13 @@
 \subsection{Solo Calculus}
-    
-    Developed by Cosimo Laneve and Bj{\"o}rn Victor in the early 2000s, the solo calculus aims to be an improvement of the Fusion calculus.
-    As such, there exists an encoding of the Fusion calculus within the solo calculus (and hence an encoding of the $\pi$-calculus).
+    Developed by Cosimo Laneve and Bj{\"o}rn Victor in the early 2000s, the Solo calculus aims to be an improvement of the Fusion calculus.
+    As such, there exists an encoding of the Fusion calculus within the Solo calculus (and hence an encoding of the $\pi$-calculus).
     The name comes from the strong distinction between the components of the calculus: \textit{solos} and \textit{agents}.
     These are roughly analogous to input/output actions and a calculus syntax similar to the $\lambda$-calculus.
-    Through some clever design choices, the solo calculus is found to have some interesting properties over other process calculi.
+    Through some clever design choices, the Solo calculus is found to have some interesting properties over other process calculi.
 
     \begin{definition}{(Syntax)\\}
         \label{solo-calculus-syntax}
-        As defined by~\cite{solo-calculus}, the solo calculus is constructed from \textit{solos} ranged over by $\alpha, \beta \ldots$ and \textit{agents} ranged over by $P, Q \ldots$ as such:
+        As defined by~\cite{solo-calculus}, the Solo calculus is constructed from \textit{solos} ranged over by $\alpha, \beta \ldots$ and \textit{agents} ranged over by $P, Q \ldots$ as such:
         \begin{center}
             \begin{tabular}{ l l l }
                 $\alpha \quad \defeq$   & $u \, \tilde{x}$          & (input) \\
@@ -37,7 +36,7 @@
 
 
     \begin{definition}{(Structural Congruence)\\}
-        The structural congruence relation $\equiv$ in the solo calculus is exactly that defined in Definition~\ref{fusion-calculus-structural-congruence}.
+        The structural congruence relation $\equiv$ in the Solo calculus is exactly that defined in Definition~\ref{fusion-calculus-structural-congruence}.
     \end{definition}
 
 
@@ -54,13 +53,15 @@
         \end{align}
         where $P\{y / x\}$ is $\alpha$-substitution of the name $x$ to the name $y$.
     \end{definition}
-    It is interesting to note here the asynchronous behaviour of the solo calculus.
-    Where in the $\pi$-calculus and CCS input/output actions where synchronised and preceded processes as guards, the solo calculus naturally treats all agents as unguarded and names may be substituted whenever is desired.
+    It is interesting to note here the asynchronous behaviour of the Solo calculus.
+    Where in the $\pi$-calculus and CCS input/output actions where synchronised and preceded processes as guards, the Solo calculus naturally treats all agents as unguarded and names may be substituted whenever is desired.
+    That is, there is no sequential aspect to the calculus, allowing for useful structural congruences.
 
 
     \begin{remark*}
-        There exists an encoding of the Fusion calculus within the solo calculus.
-        This can most easily be seen as an encoding of the choice-free Fusion calculus as a combination of the above syntax and semantics of the solo calculus and also the prefix operator $\alpha \, . \, P$\footnote{For further details,~\cite{solo-calculus} discuss this implementation in Section 3}.
+        There exists an encoding of the Fusion calculus within the Solo calculus.
+        This can most easily be seen as an encoding of the choice-free Fusion calculus as a combination of the above syntax and semantics of the Solo calculus and also the prefix operator $\alpha \, . \, P$\footnotemark
+        \footnotetext{For further details,~\cite{solo-calculus} discuss this implementation in Section 3}.
         Hence there exists an encoding of the $\pi$-calculus also, complete with the same style of guarded input/output communication.
     \end{remark*}
 
@@ -69,7 +70,7 @@
 
 
 \subsection{Solo Diagrams}
-    The solo calculus was further developed by~\cite{solo-diagrams} to provide a one-to-one correspondence between these  expressions and `diagram-like' objects.
+    The Solo calculus was further developed by~\cite{solo-diagrams} to provide a one-to-one correspondence between these  expressions and `diagram-like' objects.
     This provides a strong analog to real-world systems and an applicability to be used as a modelling tool for groups of communicating systems.
     Furthermore, as discussed by~\cite{learning-styles}, a visual output of information is often found to be preferable for cognition than verbal or textual information.
 
@@ -155,7 +156,7 @@
         \end{align}
         where $G$ is a finite multiset of \textit{edges}, $M$ is a finite multiset of \textit{boxes} and $\ell$ a labelling of the $nodes(G)$ and of $principals(M)$.
     \end{definition}
-    From here, we can convert solo calculus to diagrams, where composition is intuitively just including two separate diagrams together and scope is simply any connected nodes labelled by $\ell$.
+    From here, we can convert Solo calculus to diagrams, where composition is intuitively just including two separate diagrams together and scope is simply any connected nodes labelled by $\ell$.
     There are then four required reduction cases (edge-edge, edge-box, box-box and box internals) which can be deduced from the definition of the calculus.
 
 
@@ -227,8 +228,6 @@
 
 
     \begin{remarks}
-        The solo calculus is found to be simple, expressive and remarkable in its capability to be visualised as a diagram.
-        For further reading,~\cite{acyclic-solos} present in great detail the topics of the $\pi$ and solo calculus, solo diagrams and furthermore differential interaction nets.
+        The Solo calculus is found to be simple, expressive and remarkable in its capability to be visualised as a diagram.
+        For further reading,~\cite{acyclic-solos} present in great detail the topics of the $\pi$ and Solo calculus, solo diagrams and furthermore differential interaction nets.
     \end{remarks}
-
-

@@ -13,6 +13,14 @@
     As discussed later in~\ref{subsec:pi-calculus}, the project aims to provide an improvement over the $\pi$-calculus described by~\cite{pi-calculus}, while still remaining functionally equivalent.
 
 
+\subsection{Project Aims}
+    The project seeks to provide an implementation of both the Solo calculus (see~\cite{solo-calculus}), for which there exists an encoding of the $\pi$-calculus within itself, and also of Solo diagrams (see~\cite{solo-diagrams}), an intuitively graphical representation of the calculus.
+    These diagrams can then aid in understanding of reductions of process calculi, while maintaining a clean and simple language with strong, provable properties.
+    Furthermore, the design of the Solo calculus is such that it is fully asynchronous.
+    That is, unlike in the $\pi$-calculus where processes ‘block’ while waiting for inputs/outputs, it is shown through the construction of the Solo calculus that no such system is required — however there still exists a way of building such a system to give the effects of the $\pi$-calculus should it be desired.
+    For these reasons, the Solo calculus is found to be an interesting alternative to the more common $\pi$-calculus.
+
+
 \subsection{Overview of Dissertation Structure}
     The first section details an in-depth review of the surrounding literature and current state of the art.
     This includes an examination of various computational calculi, both concurrent and not, and an evaluation of their effectiveness for their given use-cases.

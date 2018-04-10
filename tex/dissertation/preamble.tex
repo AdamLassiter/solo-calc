@@ -8,6 +8,8 @@
 \usepackage{amsmath}
 \usepackage{amsthm}
 \usepackage{amssymb}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
 \usepackage{tikz}
 \usepackage{tkz-berge}
 \usepackage{float}
@@ -42,15 +44,59 @@
 \def\deltaeq{\mathrel{\ensurestackMath{\stackon[1pt]{=}{\scriptstyle\Delta}}}}
 \def\defeq{::=}
 
+\makeatletter
+\newtheoremstyle{indented}
+    {5pt}% space before
+    {5pt}% space after
+    {\addtolength{\@totalleftmargin}{3em}
+     \addtolength{\linewidth}{-6em}
+     \parshape 1 3em \linewidth}% body font
+    {}% indent
+    {\bfseries}% header font
+    {.}% punctuation
+    {.5em}% after theorem header
+    {}% header specification (empty for default)
+\makeatother
+
 % theorems
-\theoremstyle{definition}
-\newtheorem{definition}{Definition}[subsection]
+\theoremstyle{indented}
+\newtheorem{ssec-ctr}{???}[subsection]
+\newtheorem{theorem}[ssec-ctr]{Theorem}
+\newtheorem{definition}[ssec-ctr]{Definition}
 \newtheorem*{definition*}{Definition}
-\newtheorem{example}{Example}
+\newtheorem{lemma}[ssec-ctr]{Lemma}
+\newtheorem*{lemma*}{Lemma}
+\newtheorem{example}[ssec-ctr]{Example}
 \newtheorem*{example*}{Example}
 \newtheorem*{examples}{Examples}
-\newtheorem{corollary}{Corollary}
+\newtheorem{corollary}[ssec-ctr]{Corollary}
 \newtheorem*{corollary*}{Corollary}
-\newtheorem{remark}{Remark}
+\newtheorem{remark}[ssec-ctr]{Remark}
 \newtheorem*{remark*}{Remark}
 \newtheorem*{remarks}{Remarks}
+
+\algnewcommand\algorithmicforeach{\textbf{for each}}
+\algdef{S}[FOR]{ForEach}[1]{\algorithmicforeach\ #1\ \algorithmicdo}
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+
+\makeatletter
+\newenvironment{breakablealgorithm}
+  {% \begin{breakablealgorithm}
+   \begin{center}
+     \refstepcounter{algorithm}% New algorithm
+     \hrule height.8pt depth0pt \kern2pt% \@fs@pre for \@fs@ruled
+     \renewcommand{\caption}[2][\relax]{% Make a new \caption
+       {\raggedright\textbf{\ALG@name~\thealgorithm} ##2\par}%
+       \ifx\relax##1\relax % #1 is \relax
+         \addcontentsline{loa}{algorithm}{\protect\numberline{\thealgorithm}##2}%
+       \else % #1 is not \relax
+         \addcontentsline{loa}{algorithm}{\protect\numberline{\thealgorithm}##1}%
+       \fi
+       \kern2pt\hrule\kern2pt
+     }
+  }{% \end{breakablealgorithm}
+     \kern2pt\hrule\relax% \@fs@post for \@fs@ruled
+   \end{center}
+  }
+\makeatother
