@@ -1,0 +1,171 @@
+\subsection{Results}
+
+    The implementation here was divided into three parts: objects and functions, read-eval-print-loop (REPL) interface and a representational state transfer (REST) server.
+    The former handles reduction strategies, string formatting of terms and the underlying data structure.
+    The REPL handles user input and output, wrapping the objects and functions in a human-useable manner.
+    The REST server then presents a computer-useable interface for reduction of calculus terms, as well as allowing input through the aforementioned REPL.
+    The REST server alone serves no purpose, but combined with the diagram visualiser completes the program and allows for visualising inputted calculus terms as diagrams.
+
+
+\subsection{Objects, Functions and Datatypes}
+    
+    \subsubsection{Analysis}\label{sssec:calculus-analysis}
+        The implementation of reduction semantics and calculus objects was achieved through converting all expressions to a canonical normal form.
+        First, we must gather some possible structural congruences.
+
+        \begin{lemma}{Structural Equivalence\\}
+            For any agents $P, Q, \ldots$, the following structural equivalences hold.
+            \begin{align*}
+                (x)(y) P                & \equiv (x \, y) P \\
+                P \, | \, (Q \, | \, R) & \equiv P \, | \, Q \, | \, R \\
+                P \, | \, (x) Q         & \equiv (z)(P \, | \, Q\{z / x\}) \quad \text{where} \quad z \notin names(P) \cup names(Q) \\
+                !(x)(P \, | \, !Q)      & \equiv (z)(!(x)(P \, | \, z \, \tilde{x}) \, | \, !(\tilde{w})(\bar{z} \, \tilde{w} \, | \, Q\{\tilde{w}/\tilde{x}\})) \quad \text{where} \quad \tilde{x} \defeq fn(P)
+            \end{align*}
+            Using these congruences, we may reorder terms of expressions through $\alpha$-equivalence only.
+        \end{lemma}
+
+        \begin{definition}{Normal Form\\}
+            An agent $P$ is of normal form \textit{iff}
+            \begin{align*}
+                                    P \quad &\equiv \quad (\tilde{x})(\prod_{i}{y_i \, \tilde{z_i}} \; | \; \prod_{j}{! \, Q_j}) \\
+                \text{where} \quad Q_j \quad &\equiv \quad (\tilde{x})(\prod_{k}{y_k \, \tilde{z_k}})
+            \end{align*}
+            That is, P is written as a single scope, a composition of solos and a composition of replicators, where each replicator is written as a single scope and a composition of solos only.
+        \end{definition}
+
+        \begin{lemma}{~\\}
+            For any agent P, $\exists \, Q \equiv P$ such that Q is in normal form.
+            \begin{proof}
+                The proof is trivial by applying recursively the equivalences above.
+            \end{proof}
+        \end{lemma}
+
+        Once the expression is converted to this normal form, performing reductions is straightforward.
+        The algorithm is a simple search problem for two solos of matching subject and arity (number of names) and opposite parity (input vs. output).
+        
+        \begin{breakablealgorithm}
+            \caption{Reduction of Solos}
+            \begin{algorithmic}[1]
+                \Require{Agent $P$}
+                \Ensure{Agent $P'$, a reduction of $P$}
+                \Function{Reduce}{$P$}
+                    \For{$i \in inputs(P)$} \Comment{$inputs(P) \equiv \{x \in solos(P) \;|\; x \text{ an input}\}$}
+                        \For{$o \in outputs(P)$} \Comment{$outputs(P) \equiv \{x \in solos(P) \;|\; x \text{ an output}\}$}
+                            \If{$i$ agrees with $o$} \Comment{`agrees' $\equiv$ matching subject and arity}
+                                \State$\sigma :=$ \Call{Fuse}{$i$, $o$, $bn(P)$}
+                                \If{$\sigma \neq \textit{none}$}
+                                    \State\Return$\sigma(P - \{i, o\})$
+                                \EndIf
+                            \EndIf
+                        \EndFor
+                    \EndFor
+                    \State\Return$P$
+                \EndFunction
+            \end{algorithmic}
+        \end{breakablealgorithm}
+
+        The next step is to find a suitable $\sigma$, should one exist. This is a renaming of the names of $P$ and must satisfy:
+        \begin{align*}
+            \sigma : \; & bn(P) \rightarrow names(P) \\
+            \emptyset = \; & domain(\sigma) \cap range(\sigma) \\
+            \sigma(x) = \; & y \implies \text{$x$ and $y$ have been fused}
+        \end{align*}
+
+        This is found through converting the list of pairs of object names to edges of a graph.
+        For each disconnected subgraph, or partition, the span of names forms a set which must all be fused into one another.
+        Subsequently, there must be at most one free name in this set as two or more would require renaming one free name to another, which is not allowed.
+        If no free name exists, a bound name is chosen as the `free name' at random.
+        $\sigma$ is then constructed by $\sigma(bn) := fn$.
+
+        \begin{breakablealgorithm}
+            \caption{Fusion of Solos}
+            \begin{algorithmic}[1]
+                \Require{$i_1 \ldots i_n \text{ objects of solo } i, \quad o_1 \ldots o_n \text{ objects of solo } o, \quad bn \; \text{set of bound names}$}
+                \Ensure{$\sigma : bn \rightarrow names(i) \cup names(o)$ or \textit{none}}
+                \Function{Fuse}{$i_1 \ldots i_n$, $o_1 \ldots o_n$, $bn$}
+                    \State$\texttt{Graph} \; g := \{(i_j, o_j) \; | \; 1 \leq j \leq n\}$
+                    \State$\texttt{Map} \; \sigma := id$
+                    \ForEach{$\texttt{Graph} \; \bar{g} \in partitions(g)$}
+                        \State$isect := nodes(\bar{g}) - bn$
+                        \If{$|isect| = 0$}
+                            \State$fn := x \in nodes(\bar{g})$
+                        \ElsIf{$|isect| = 1$}
+                            \State$fn := x \in isect$
+                        \Else
+                            \State\Return\textit{none}
+                        \EndIf
+                        \ForEach{$name \in nodes(\bar{g}) - \{fn\}$}
+                            \State$\sigma(name) := fn$
+                        \EndFor
+                    \EndFor
+                    \State\Return$\sigma$
+                \EndFunction
+            \end{algorithmic}
+        \end{breakablealgorithm}
+
+        This forms a complete implementation of non-replicating parts of the calculus.
+        To avoid the implementation problems with replicators mentioned in~\cite{solo-diagrams}, it is necessary to only perform expansions on replicators that can be reduced.
+        While the method described in the aforementioned paper would be suitable, it is enough to simply search for replicators which may be reduced, but only expand them rather than perform a complete reduction.
+        This eases some implementation details and minimises code duplication while remaining correct.
+        The expansion will be reduced on the next pass of the \texttt{Reduce} function.
+        Below shows an extension of the \texttt{Reduce} function for a replicator-replicator fusion (reduction of the form $!P \;|\; !Q$).
+
+        \begin{breakablealgorithm}
+            \caption{Reduction of Replicators}
+            \begin{algorithmic}[1]
+                \Require{Agent $P$}
+                \Ensure{Agent $P'$, a reduction of $P$}
+                \Function{Reduce}{$P$}
+                    \For{$i \in inputs(P)$} \Comment{$inputs(P) \equiv \{x \in solos(P) \;|\; x \text{ an input}\}$}
+                        \For{$o \in outputs(P)$} \Comment{$outputs(P) \equiv \{x \in solos(P) \;|\; x \text{ an output}\}$}
+                            \If{$i$ agrees with $o$} \Comment{`agrees' $\equiv$ matching subject and arity}
+                                \State$\sigma :=$ \Call{Fuse}{$i$, $o$, $bn(P)$}
+                                \If{$\sigma \neq \textit{none}$}
+                                    \State\Return$\sigma(P - \{i, o\})$
+                                \EndIf
+                            \EndIf
+                        \EndFor
+                    \EndFor
+                    \For{$i \in \bigcup_{r \in reps(P)} inputs(r)$} \Comment{$reps(P) \equiv \{x \in P \;|\; x \text{ a replicator}\}$}
+                        \For{$o \in \bigcup_{r \in reps(P)} outputs(r)$}
+                            \If{$i$ agrees with $o$}
+                                \State$\sigma :=$ \Call{Fuse}{$i$, $o$, $bn(P) \cup bn(r_i) \cup bn(r_o)$} \Comment{$r_x \equiv r \in reps(P) \;|\; x \in solos(r)$}
+                                \If{$\sigma \neq \textit{none}$}
+                                    \State\Return$P \cup \{expand(r_i), \; expand(r_o)\}$ \Comment{$expand(!R) \equiv R$}
+                                \EndIf
+                            \EndIf
+                        \EndFor
+                    \EndFor
+                    \State\Return$P$
+                \EndFunction
+            \end{algorithmic}
+        \end{breakablealgorithm}
+
+
+
+    \subsubsection{Discussion}
+        The initial implementation stayed closer to the core concepts of the calculus.
+        There existed separate classes of objects for each of Scopes, Compositions, Replications, Matches and Solos.
+        While such an approach is perhaps more intuitive, problems arise due to conflicts between how the data structure naturally appears to be tree-like where properties of agents are functions of themselves and their children only and how whether or not a name is bound or free is a property dependent upon an agent or its parent, grandparent etc.
+
+        \begin{example*}
+            Consider the following equivalent expressions.
+            \begin{align*}
+                P \quad & \defeq \quad (y)(a \, x \,|\, (\bar{a} \, y \,|\, p \, y)) \\
+                Q \quad & \defeq \quad (a \, x \,|\, (y)(\bar{a} \, y \,|\, p \, y))
+            \end{align*}
+            Both $P$ and $Q$ have the property that $y$ is a bound name and both should reduce to the term $p \, x$.
+            In both cases, $y$ and $x$ are fused into the free name $x$. The scope of $y$ disappears and the remaining `print' term displays the result of the fusion.
+            Consider now the (inequivalent) expression.
+            \begin{align*}
+                R \quad & \defeq \quad (a \, x \, | \, (y)\bar{a} \, y \, | \, p \, y)
+            \end{align*}
+            This term, while similar to $P$ and $Q$, reduces to the term $p \, y$, as our scoped $y$ that is fused is not the same as the free $y$ that is `printed'.
+            This can be seen through $\alpha$-equivalence and renaming $(y)\bar{a} \, y$ to the equivalent term $(z)\bar{a} \, z$ and observing that $a$ is a fusion on $x$ and $z$.
+
+            The distinction between the two behaviours is not intuitive, especially in non-trivial cases where agents may be deeply nested.
+        \end{example*}
+
+        The above example is further amplified when manipulating expressions symbolically.
+        When searching for reducible patterns, the expression is divided and recombined, rearranging the expression tree and subsequently each nodes' parents.
+        While the problem is solvable through updating which node has which parent as the expression is rearranged and manipulated, the solution eventually becomes an attempt to form a normal form out of the expression, leading to the revised method described in~\ref{sssec:calculus-analysis}.
