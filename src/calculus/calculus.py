@@ -3,6 +3,7 @@
 from __future__ import annotations
 from functools import reduce
 from itertools import count
+from operator import eq
 from string import digits
 from typing import Iterator, Iterable, List, Tuple, TypeVar, Union, FrozenSet as Set
 
@@ -40,7 +41,7 @@ class Agent:
 
 
     def reduce(self) -> Agent:
-        return self
+        raise NotImplementedError
 
 
     @property
@@ -182,7 +183,18 @@ class Solo(Agent):
 
     def __str__(self) -> str:
         subject = self.subject if self.parity else '\u0305' + '\u0305'.join(self.subject)
-        return ' '.join((subject,) + self.objects)
+        return ' '.join([subject] + list(self.objects))
+
+    
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, type(self)):
+            raise NotImplementedError
+        return all([getattr(self, value) == getattr(other, value)
+                    for value in ['subject', 'objects', 'parity']])
+    
+
+    def __hash__(self) -> int:
+        return hash((self.subject, tuple(self.objects), self.parity))
 
 
     def flatten(self) -> Agent:
@@ -225,6 +237,16 @@ class CanonicalAgent(Agent):
             self.scope, self.solos, self.replicators = agent
 
 
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, type(self)):
+            raise NotImplementedError
+        return all(map(eq, iter(self), iter(other)))
+    
+
+    def __hash__(self) -> int:
+        return hash(tuple(iter(self)))
+
+
     def __iter__(self) -> Iterable:
         yield self.scope
         yield self.solos
@@ -235,6 +257,10 @@ class CanonicalAgent(Agent):
         return '(%s)(%s)' % (' '.join(self.scope),
                              ' | '.join(set(map(str, self.solos)) 
                                         | {'!%s' % r for r in self.replicators}))
+
+    
+    def __repr__(self) -> str:
+        return self.__str__()
 
 
     def construct_alpha(self, collisions: Set[str]) -> Alpha:
@@ -291,7 +317,7 @@ class CanonicalAgent(Agent):
                 alpha = Alpha(zip(z, ws))
                 P = p | Solo(y, z, True)
                 Q = Scope(Composition(set({alpha(q), Solo(y, z, False)})), set(ws))
-                return self | Scope(Composition(set({P.to_agent, Q})), set({y}))
+                return self | Scope(Composition(set(map(Replication, {P.to_agent, Q}))), set({y}))
             else:
                 assert p.replicators == set()
                 collisions = self.scope & p.scope
@@ -354,6 +380,11 @@ class CanonicalAgent(Agent):
         return self.scope \
             | set(reduce(lambda red, solo: red | solo.names, self.solos, set())) \
             | set(reduce(lambda red, rep: red | rep.names, self.replicators, set()))
+
+
+    @property
+    def bound_names(self) -> Set[str]:
+        return self.scope
 
 
 

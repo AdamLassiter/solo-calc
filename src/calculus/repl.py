@@ -2,7 +2,7 @@
 
 import regex as re
 
-from calculus import Solo, Composition, Replication, Scope, Agent
+from calculus import Solo, Composition, Replication, Scope, Agent, CanonicalAgent
 
 
 _input = re.compile(r'\s?(?P<subject>[a-z0-9]+)\s(?P<objects>([a-z0-9]+\s?)+)\s?')
@@ -52,7 +52,7 @@ def build_scope(match, names: dict) -> Scope:
         if name not in names.keys():
             names[name] = str(name)
     bindings = frozenset(names[name] for name in match['bindings'].split())
-    return Scope(bindings, agent)
+    return Scope(agent, bindings)
 
 
 def build_agent(string: str, names: dict=None) -> Agent:
@@ -63,7 +63,7 @@ def build_agent(string: str, names: dict=None) -> Agent:
                                (replication, build_replication)]:
         match = regex.fullmatch(string)
         if match:
-            return build_func(match, names)
+            return CanonicalAgent(build_func(match, names))
     raise Exception('Cannot build agent: %s' % string)
 
 
@@ -73,7 +73,7 @@ def reduce(agent: Agent, verbose=False) -> Agent:
         computation.append(computation[-1].reduce())
         if verbose:
             print('[verbose]', computation[-2], '->', computation[-1])
-        if any(map(computation[-1].equals, computation[:-1])):
+        if any(map(computation[-1].__eq__, computation[:-1])):
             return computation[-1]
 
 
