@@ -1,13 +1,4 @@
-\subsection{Results}
-
-    The implementation here was divided into three parts: objects and functions, read-eval-print-loop (REPL) interface and a representational state transfer (REST) server.
-    The former handles reduction strategies, string formatting of terms and the underlying data structure.
-    The REPL handles user input and output, wrapping the objects and functions in a human-useable manner.
-    The REST server then presents a computer-useable interface for reduction of calculus terms, as well as allowing input through the aforementioned REPL.
-    The REST server alone serves no purpose, but combined with the diagram visualiser completes the program and allows for visualising inputted calculus terms as diagrams.
-
-
-\subsection{Objects, Functions and Datatypes}
+\subsection{Calculus Implementation}\label{ssec:calculus-implementation}
     
     \subsubsection{Analysis}\label{sssec:calculus-analysis}
         The implementation of reduction semantics and calculus objects was achieved through converting all expressions to a canonical normal form.
@@ -141,6 +132,25 @@
             \end{algorithmic}
         \end{breakablealgorithm}
 
+        The third case of solo-replicator fusion (reduction of the form $P \;|\; !Q$) is then trivial.
+
+
+    \subsubsection{Testing and Correctness}
+        Testing was first done of the structural equivalence and equality of expressions.
+        For each of the congruences described above, a normalised expression and its known normal form were tested for equality.
+        Testing of reductions was done through testing each of the four cases of fusions being performed:
+        \begin{itemize}
+            \item Normal fusion $(\tilde{x})(a \tilde{x} \,|\, \bar{a} \, \tilde{y})$
+            \item Cross-replicator fusion $(\tilde{x})(a \, \tilde{x} \,|\, !(\bar{a} \, \tilde{y}))$
+            \item Multi-replicator fusion $(\tilde{x})(!(a \, \tilde{x}) \,|\, !(\bar{a} \, \tilde{y}))$
+            \item Inter-replicator fusion $(\tilde{x})(!(a \, \tilde{x} \,|\, \bar{a} \, \tilde{y}))$
+        \end{itemize} 
+        where for each, there exist (up to) four cases of which variables are bound and where the matching scope lies.
+        Finally, a final test of an expression containing all of the above agents was reduced and checked for correctness. \\
+
+        Due to the open-endedness of the problem, it is difficult to provide a conclusive, complete testing suite.
+        In particular, checking for false positives presents a large space of possible tests.
+        This was managed by reducing to the above unit tests and combining with the integration test of each case of fusion.
 
 
     \subsubsection{Discussion}

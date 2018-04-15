@@ -17,7 +17,7 @@
 
 
     \begin{examples}
-        The implementation of a solution to such a problem is complicated and performance-intensive, so is seen outside of the scope of this project.
+        The implementation of a solution to such a problem is nontrivial and, in the general case, performance-intensive, so is seen outside of the scope of this project.
         Instead, there exist several software libraries capable of producing these kind of outputs.
         Notable mentions include:
         \begin{itemize}
@@ -31,8 +31,9 @@
 
     
     \begin{remarks}
-        Most of these libraries, especially those that allow interactivity with the output, are written with the web-browser in mind and are subsequently written in JavaScript as the popular choice.
+        Most of these libraries, especially those that allow interactivity with the output, are written for web-browsers and are subsequently written in JavaScript as the popular choice.
         With this in mind, this project is likely to focus on the use of the latter-mentioned \textit{d3.js}, which produces an interactive output or SVG from a JSON source.
         The reasoning for this choice is based upon both the features available and the relative maturity of the library.
-        The popularity of the library across a large number of people, coupled with a development history dating back to early 2011.
+        The popularity of the library across a large number of people, coupled with a development history dating back to early 2011, provides evidence of a usable, feature-rich solution.
+        Furthermore, the open-endedness of program I/O through use of HTTP GET/PUT/POST ensures language interoperability will not be hindered too much.
     \end{remarks}

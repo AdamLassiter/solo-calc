@@ -14,15 +14,22 @@
     \maketitle
     \vspace{\fill}
     \begin{abstract}
-        The project seeks to provide an implementation of both the Solo Calculus and also of Solo Diagrams, an intuitively graphical representation of the calculus. These diagrams can then aid in understanding of reductions of process calculi, while maintaining a clean and simple language with strong provable properties.
+        The project seeks to provide an implementation of both the Solo Calculus and also of Solo Diagrams, an intuitively graphical representation of the calculus.
+        These diagrams can then aid in understanding of reductions of process calculi, while maintaining a clean and simple language with strong provable properties.
     \end{abstract}
+    \vspace{\fill}
+    \begin{figure}[H]
+        \centering
+        \def\svgwidth{\columnwidth/3}
+        \input{diagram.pdf_tex}
+    \end{figure}
     \vspace{\fill}
     \pagebreak
     
     \renewcommand{\abstractname}{Acknowledgements}
     \null\vspace{\fill}
     \begin{abstract}
-        I would like to express my gratitude to Prof. Guy McCusker for his fantastic supervision of this project throughout.
+        I would like to express my gratitude to Prof. Guy McCusker for his guidance and dedicated supervision of this project throughout.
     \end{abstract}
     \vspace{\fill}
     \pagebreak
@@ -41,12 +48,15 @@
         \input{lit-review/solo-calc}
 
     \section{Technology}
-        \input{lit-review/graph-vis}
+        \input{tech-review/graph-vis}
 
     \section{Solo Calculus}
+        \input{calculus/results}
         \input{calculus/calculus}
+        \input{calculus/repl}
 
     \section{Solo Diagrams}
+        \input{diagrams/results}
         \input{diagrams/diagrams}
 
     \section{Diagram Visualisation}
