@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 from functools import reduce
-from itertools import count
+from itertools import count, permutations
 from operator import eq
 from string import digits
 from typing import Iterator, Iterable, List, Tuple, TypeVar, Union, FrozenSet as Set
@@ -10,6 +10,7 @@ from typing import Iterator, Iterable, List, Tuple, TypeVar, Union, FrozenSet as
 from multiset import FrozenMultiset as multiset
 
 from graph import graph
+from hashdict import hashdict
 
 mutableset, set = set, frozenset
 
@@ -24,6 +25,9 @@ def fresh_name(working_set: Set[str], name_hints: List[str] = ['u']) -> List[str
                 break
     return names
 
+
+def combinations(a: set, b: set) -> set:
+    return set({set(zip(x, b)) for x in permutations(a, len(b))})
 
 
 class Agent:
@@ -241,7 +245,30 @@ class CanonicalAgent(Agent):
         if not isinstance(other, type(self)):
             raise NotImplementedError
         return all(map(eq, iter(self), iter(other)))
-    
+
+
+    def alpha_eq(self, other: Agent, scope: set = set()) -> Alpha:
+        if not isinstance(other, Agent):
+            raise NotImplementedError
+        elif not isinstance(other, type(self)):
+            return self.alpha_eq(type(self)(other))
+        for scope_comb in combinations(self.scope, other.scope):
+            alpha = Alpha(scope_comb, in_scope=multiset(scope))
+            for rep_comb in combinations(self.replicators, other.replicators):
+                rep_alphas = [r1.alpha_eq(r2, scope=self.scope)
+                              for r1, r2 in rep_comb]
+                if not all(rep_alphas) \
+                or any([any([a1[k] != a2[k] for k in a1.keys() & a2.keys()])
+                        for alpha_comb in combinations(rep_alphas, rep_alphas)
+                        for a1, a2 in alpha_comb]):
+                    continue
+                alpha = reduce(lambda a, ext: Alpha(a, **ext), rep_alphas, alpha)
+                if alpha(self) == other:
+                    return alpha
+            if alpha(self) == other:
+                return alpha
+        return Alpha() if self == other else None
+
 
     def __hash__(self) -> int:
         return hash(tuple(iter(self)))
@@ -273,7 +300,9 @@ class CanonicalAgent(Agent):
                         bound_names: Set[str] = set()) -> Tuple[Sigma, Set[str]]:
         if any([input.subject != output.subject,
                 input.arity != output.arity,
-                input.parity == output.parity]):
+                input.parity == output.parity,
+                input.subject in bound_names]):
+            # NOTE: (u x | (u)^u y) should not reduce
             return None, None
         g = graph()
         sigma = Sigma()
@@ -341,6 +370,8 @@ class CanonicalAgent(Agent):
 
 
     def reduce(self) -> CanonicalAgent:
+        self.scope &= self.solo_names | self.replicator_names
+
         for input, output in ((input, output)
                               for input in self.solos
                               for output in self.solos - {input}):
@@ -377,9 +408,17 @@ class CanonicalAgent(Agent):
 
     @property
     def names(self) -> Set[str]:
-        return self.scope \
-            | set(reduce(lambda red, solo: red | solo.names, self.solos, set())) \
-            | set(reduce(lambda red, rep: red | rep.names, self.replicators, set()))
+        return self.scope | self.solo_names | self.replicator_names
+
+
+    @property
+    def solo_names(self) -> Set[str]:
+        return set(reduce(lambda red, solo: red | solo.names, self.solos, set())) 
+
+
+    @property
+    def replicator_names(self) -> Set[str]:
+        return set(reduce(lambda red, rep: red | rep.names, self.replicators, set()))
 
 
     @property
@@ -427,7 +466,7 @@ class Match(dict):
 
 
 
-class Alpha(Match):
+class Alpha(Match, hashdict):
 
     def __init__(self, *args, fuse=False, **kwargs) -> None:
         super().__init__(*args, fuse=fuse, **kwargs)
