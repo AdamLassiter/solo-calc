@@ -366,9 +366,7 @@ class CanonicalAgent(Agent):
 
         elif isinstance(agent, Solo):
             collisions = self.scope & agent.names
-            return type(self)((self.scope,
-                               self.solos + {self.construct_alpha(collisions)(agent)},
-                               self.replicators))
+            return self.construct_alpha(collisions)(self) | agent
 
         else:
             assert isinstance(agent, type(self))
