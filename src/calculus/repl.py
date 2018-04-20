@@ -2,41 +2,49 @@
 
 import regex as re
 
+from multiset import FrozenMultiset as multiset
+
 from calculus import Solo, Composition, Replication, Scope, Agent, CanonicalAgent
 
 
-_input = re.compile(r'\s?(?P<subject>[a-z0-9]+)\s(?P<objects>([a-z0-9]+\s?)+)\s?')
+_input = re.compile(r'\s?(?P<subject>[a-z0-9]+)(\s(?P<objects>([a-z0-9]+\s?)+))?\s?')
 def build_input(match, names: dict) -> Solo:
     subj_name = match['subject']
     if subj_name not in names.keys():
         names[subj_name] = str(subj_name)
     subject = names[subj_name]
     objects = []
-    for obj_name in match['objects'].split():
-        if obj_name not in names.keys():
-            names[obj_name] = str(obj_name)
-        objects.append(names[obj_name])
-    return Solo(subject, tuple(objects), True)
+    if match['objects'] is None:
+        return Solo(subject, tuple(), True)
+    else:
+        for obj_name in match['objects'].split():
+            if obj_name not in names.keys():
+                names[obj_name] = str(obj_name)
+            objects.append(names[obj_name])
+        return Solo(subject, tuple(objects), True)
 
 
-output = re.compile(r'\s?\^(?P<subject>[a-z0-9]+)(?P<objects>(\s[a-z0-9]+)+)\s?')
+output = re.compile(r'\s?\^(?P<subject>[a-z0-9]+)(\s(?P<objects>([a-z0-9]+\s?)+))?\s?')
 def build_output(match, names: dict) -> Solo:
     subj_name = match['subject']
     if subj_name not in names.keys():
         names[subj_name] = str(subj_name)
     subject = names[subj_name]
     objects = []
-    for obj_name in match['objects'].split():
-        if obj_name not in names.keys():
-            names[obj_name] = str(obj_name)
-        objects.append(names[obj_name])
-    return Solo(subject, tuple(objects), False)
+    if match['objects'] is None:
+        return Solo(subject, tuple(), False)
+    else:
+        for obj_name in match['objects'].split():
+            if obj_name not in names.keys():
+                names[obj_name] = str(obj_name)
+            objects.append(names[obj_name])
+        return Solo(subject, tuple(objects), False)
 
 
 composition = re.compile(r'\s?\((?<agents>(?<agent>([^|()]|(?<rec>\((?:[^()]++|(?&rec))*\)))+)(\|(?&agents))?)\)\s?')
 def build_composition(match, names: dict) -> Composition:
     agents = [build_agent(string, names) for string in match.captures('agent')]
-    return Composition(agents)
+    return Composition(multiset(agents))
 
 
 replication = re.compile(r'\s?!(?P<agent>.*)\s?')

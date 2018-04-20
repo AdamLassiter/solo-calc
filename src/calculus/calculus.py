@@ -81,7 +81,7 @@ class Scope(Agent):
             return type(self)(child.child,
                               self.scope | child.scope)
         elif isinstance(child, (Replication, Solo)):
-            return type(self)(Composition(set({child})), self.scope)
+            return type(self)(Composition(multiset({child})), self.scope)
         else:
             assert isinstance(child, Composition)
             return type(self)(child, self.scope)
@@ -100,7 +100,7 @@ class Scope(Agent):
 
 class Composition(Agent):
 
-    def __init__(self, children: Set[Agent]) -> None:
+    def __init__(self, children: multiset) -> None:
         self.children = children
 
 
@@ -108,15 +108,21 @@ class Composition(Agent):
         return '(%s)' % (' | '.join(map(str, self.children)),)
 
 
+    def construct_alpha(self, agent: Agent) -> Alpha:
+        sorted_collisions = list(sorted(agent.names & self.names))
+        fresh_names = fresh_name(self.names, sorted_collisions)
+        return Alpha(zip(sorted_collisions, fresh_names))
+
+
     def flatten(self) -> Agent:
-        children = set({child.flatten() for child in self.children})
+        children = multiset([child.flatten() for child in self.children])
         for child in children:
             if isinstance(child, Composition):
-                return type(self)(children - {child} | child.children).flatten()
+                return type(self)(children - {child} + child.children).flatten()
             elif isinstance(child, Scope):
                 alpha = Composition(children).construct_alpha(child)
                 alpha_child = alpha(child)
-                return Scope(Composition(children - {child} | {alpha_child.child}),
+                return Scope(Composition(children - {child} + {alpha_child.child}),
                              alpha_child.scope).flatten()
             else:
                 assert isinstance(child, (Replication, Solo))
@@ -150,7 +156,7 @@ class Replication(Agent):
         if not isinstance(child, Scope):
             child = Scope(child, set())
         if not isinstance(child.child, Composition):
-            child = Scope(Composition(set({child.child})), child.scope)
+            child = Scope(Composition(multiset({child.child})), child.scope)
         composition = child.child.children
         replicators = set(filter(lambda x: isinstance(x, Replication), composition))
         for Q in replicators:
@@ -160,9 +166,9 @@ class Replication(Agent):
             y, *_ = fresh_name(child.names, ['y'])
             w = fresh_name(child.names | {y}, z)
             alpha = Alpha(zip(z, w))
-            Prep = Replication(Scope(Composition(set({P, Solo(y, z, True)})), x))
-            Qrep = Replication(Scope(Composition(set({alpha(Q), Solo(y, w, False)})), set(w)))
-            return Scope(Composition(set({Prep, Qrep})), set({y})).flatten()
+            Prep = Replication(Scope(Composition(multiset([P, Solo(y, z, True)])), x))
+            Qrep = Replication(Scope(Composition(multiset([alpha(Q), Solo(y, w, False)])), set(w)))
+            return Scope(Composition(multiset([Prep, Qrep])), set({y})).flatten()
         return type(self)(child)
 
 
@@ -195,6 +201,10 @@ class Solo(Agent):
             raise NotImplementedError
         return all([getattr(self, value) == getattr(other, value)
                     for value in ['subject', 'objects', 'parity']])
+
+
+    def __lt__(self, other: Solo) -> bool:
+        return str(self) < str(other)
     
 
     def __hash__(self) -> int:
@@ -228,13 +238,13 @@ class CanonicalAgent(Agent):
 
 
     def __init__(self, agent: Union[Agent, Tuple[Set[str],
-                                                 Set[Solo],
+                                                 multiset,
                                                  Set[CanonicalAgent]]] = None)-> None:
         self.scope: Set[str] = None
-        self.solos: Set[Solo] = None
+        self.solos: multiset = None
         self.replicators: Set[CanonicalAgent] = None
         if isinstance(agent, Agent):
-            base = CanonicalAgent((set(), set(), set()))
+            base = CanonicalAgent((set(), multiset(), set()))
             base |= agent
             self.scope, self.solos, self.replicators = base
         elif isinstance(agent, tuple):
@@ -282,8 +292,8 @@ class CanonicalAgent(Agent):
 
     def __str__(self) -> str:
         return '(%s)(%s)' % (' '.join(self.scope),
-                             ' | '.join(set(map(str, self.solos)) 
-                                        | {'!%s' % r for r in self.replicators}))
+                             ' | '.join(list(map(str, self.solos)) +
+                                        ['!%s' % r for r in self.replicators]))
 
     
     def __repr__(self) -> str:
@@ -291,7 +301,7 @@ class CanonicalAgent(Agent):
 
 
     def construct_alpha(self, collisions: Set[str]) -> Alpha:
-        sorted_collisions = list(collisions)
+        sorted_collisions = list(sorted(collisions))
         fresh_names = fresh_name(self.names, sorted_collisions)
         return Alpha(zip(sorted_collisions, fresh_names))
 
@@ -341,12 +351,12 @@ class CanonicalAgent(Agent):
             for q in p.replicators:
                 p.replicators -= {q}
                 y, *_ = fresh_name(agent.names, ['y'])
-                z = list(q.free_names)
+                z = sorted(list(q.free_names - p.bound_names))
                 ws = fresh_name(agent.names | {y}, z)
                 alpha = Alpha(zip(z, ws))
                 P = p | Solo(y, z, True)
-                Q = Scope(Composition(set({alpha(q), Solo(y, z, False)})), set(ws))
-                return self | Scope(Composition(set(map(Replication, {P.to_agent, Q}))), set({y}))
+                Q = alpha(Scope(Composition(multiset([q, Solo(y, z, False)])), set(z)))
+                return self | Scope(Composition(multiset(map(Replication, [P.to_agent, Q]))), set({y}))
             else:
                 assert p.replicators == set()
                 collisions = self.scope & p.scope
@@ -357,7 +367,7 @@ class CanonicalAgent(Agent):
         elif isinstance(agent, Solo):
             collisions = self.scope & agent.names
             return type(self)((self.scope,
-                               self.solos | {self.construct_alpha(collisions)(agent)},
+                               self.solos + {self.construct_alpha(collisions)(agent)},
                                self.replicators))
 
         else:
@@ -366,7 +376,7 @@ class CanonicalAgent(Agent):
     
 
     def flatten(self) -> CanonicalAgent:
-        return self
+        return type(self)(tuple(iter(self)))
 
 
     def reduce(self) -> CanonicalAgent:
@@ -403,7 +413,7 @@ class CanonicalAgent(Agent):
 
     @property
     def to_agent(self) -> Agent:
-        return Scope(Composition(self.solos | set(map(Replication, self.replicators))), self.scope)
+        return Scope(Composition(self.solos + set(map(Replication, self.replicators))), self.scope)
     
 
     @property
@@ -439,12 +449,11 @@ class Match(dict):
 
     def __call__(self, agent: T) -> T:
         if isinstance(agent, Composition):
-            return type(agent)(set({type(self)(self, in_scope=self.in_scope)(child)
-                                    for child in agent.children}))
+            return type(agent)(multiset([type(self)(self, in_scope=self.in_scope)(child)
+                                         for child in agent.children]))
         elif isinstance(agent, Scope):
-            self.in_scope |= agent.scope
+            self.in_scope += agent.scope
             if self.fuse:
-                # FIXME: This can be removed by culling unused scopes
                 return type(agent)(self(agent.child), set(agent.scope - self.keys()))
             else:
                 return type(agent)(self(agent.child), set(map(self, agent.scope)))
@@ -471,40 +480,12 @@ class Alpha(Match, hashdict):
     def __init__(self, *args, fuse=False, **kwargs) -> None:
         super().__init__(*args, fuse=fuse, **kwargs)
 
+    def __bool__(self) -> bool:
+        return True
+
 
 
 class Sigma(Match):
 
     def __init__(self, *args, fuse=True, **kwargs) -> None:
         super().__init__(*args, fuse=fuse, **kwargs)
-
-
-
-if __name__ == '__main__':
-    a, b, c, p = (str(x) for x in 'abcp')
-    ags = [(Scope(Composition(set({Solo(a, (b,), True),
-                                   Solo(a, (c,), False),
-                                   Solo(p, (a,b,c), True)})), set({p, b})),
-            1),
-
-           (Scope(Composition(set({Solo(a, (b,), True),
-                                   Replication(Solo(a, (c,), False)),
-                                   Solo(p, (a,b,c), True)})), set({p, b})),
-            2),
-
-           (Scope(Composition(set({Replication(Solo(a, (b,), True)),
-                                  Replication(Solo(a, (c,), False)),
-                                  Solo(p, (a,b,c), True)})), set({p, b})),
-            2),
-          
-           (Scope(Composition(set({Replication(Composition(set({Solo(a, (b,), True),
-                                                                Solo(a, (c,), False)}))),
-                                   Solo(p, (a,b,c), True)})), set({p, b})),
-            2)]
-    
-    for agent, n in ags:
-        canonical = CanonicalAgent(agent)
-        reduxes = [reduce(lambda rs, i: rs + [rs[-1].reduce()], range(n), [ag])
-                   for ag in [canonical]]
-        print('\n\n'.join(('\n-> '.join(map(str, redux)) for redux in reduxes)))
-        print('----------------')
