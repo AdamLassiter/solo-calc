@@ -37,17 +37,17 @@
     \begin{definition}{(Action Semantics)\\}
         Given two processes waiting on input/output, eventually an input/output action will happen.
         This gives the reductions as follows:
-        \begin{align}
+        \begin{align*}
             a x_1 \ldots x_n . P        & \xrightarrow{a v_1 \ldots v_n} P[v_1 / x_1 \ldots v_n / x_n] \\
             \bar{a} v_1 \ldots v_n . P  & \xrightarrow{\bar{a} v_1 \ldots v_n} P \\
             \tau . P                    & \xrightarrow{\tau} P
-        \end{align}
+        \end{align*}
     \end{definition}
 
 
     \begin{definition}{(Composition Semantics)\\}
         For such an action $a$ taking place, the following reductions can be made:
-        \begin{align}
+        \begin{align*}
             P \xrightarrow{a} P' \implies &
             \begin{cases}
                 P + Q \xrightarrow{a} P' \\
@@ -58,7 +58,7 @@
                 Q \xrightarrow{\bar{a}} Q' \\
             \end{rcases} \implies &
             P \, | \, Q \xrightarrow{\tau} P' \, | \, Q'
-        \end{align}
+        \end{align*}
     \end{definition}
     The choice here of whether to follow the left or right side is non-deterministic.
     This leads to what is described as the Tea/Coffee Problem.
@@ -117,13 +117,13 @@
 
     \begin{definition}{(Restriction Semantics and Relabelling)\\}
         Restrictions and relabellings hold the property:
-        \begin{align}
+        \begin{align*}
             P \xrightarrow{a x} P' \implies
             \begin{cases}
                 P \backslash b \xrightarrow{a x} P ' \backslash b \quad \text{if } a \notin \{b, \bar{b}\}\\
                 P[S] \xrightarrow{S(a) x} P'[S] \\
             \end{cases}
-        \end{align}
+        \end{align*}
     \end{definition}
     That is, a process is equivalent under renaming if any actions on that process are also renamed.
 
@@ -131,10 +131,10 @@
     \begin{definition}{(Identifier Semantics)\\}
         Suppose a behaviour identifier $b$ is defined (possibly recursively) as $b(x_1 \ldots x_n) \impliedby P$, and that for the process $P$, $FV(P) \subseteq \{x_1 \ldots x_n\}$.
         Then processes may be reduced as follows:
-        \begin{align}
+        \begin{align*}
             P[v_1 / x_1 \ldots v_n / x_n] \xrightarrow{a x} P' \implies
             b(v_1 \ldots v_n) \xrightarrow{a x} P'
-        \end{align}
+        \end{align*}
     \end{definition}
     The identifier operation can be seen as similar to abstractions ($\lambda x . M$) in the $\lambda$-calculus.
 

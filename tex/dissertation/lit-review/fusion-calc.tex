@@ -27,12 +27,12 @@
     \begin{definition}{(Structural Congruence)\\}
         \label{fusion-calculus-structural-congruence}
         The structural congruence $\equiv$ is the least congruence relation satisfying $\alpha$-equivalence, associativity, commutativity, \textbf{0} identity and the following scope laws:
-        \begin{align}
+        \begin{align*}
             (x) \, \textbf{0}       & \equiv \textbf{0} \\
             (x) \, (y) \, P         & \equiv (y) \, (x) \, P \\
             (x) \, (P \, | \, Q)    & \equiv P \, | \, (x)Q \quad \text{where $z \notin fn(P)$} \\
             (x)(P \, + \, Q)        & \equiv (x)P \, + \, (x)Q
-        \end{align}
+        \end{align*}
         This aims to provide the core definition of equivalent computation and a basis for reductions.
     \end{definition}
 
@@ -40,7 +40,7 @@
     \begin{definition}{(Semantics)\\}
         Similar to CCS, a reduction in the Fusion calculus is a labelled transition $P \xrightarrow{\alpha} Q$ where:
         where each satisfies the expression:
-        \begin{align}
+        \begin{align*}
             \alpha . P \xrightarrow{\alpha}                             & P \\
             P \xrightarrow{ux} P', Q \xrightarrow{\bar{u}y} Q' \implies & P \, | \, Q \xrightarrow{x = y} P' \, | \, Q' \\
             P \xrightarrow{\alpha} P' \implies                          &
@@ -52,7 +52,7 @@
             P \xrightarrow{\alpha} P', x \notin names(\alpha) \implies                      & (x)P \xrightarrow{\alpha} (x)P' \\
             P \equiv P', Q \equiv Q', P \xrightarrow{\alpha} Q \implies                     & P \xrightarrow{\alpha} Q \\
             P \xrightarrow{(y) a x} P', z \in \{x, y\}, a \notin \{z, \bar{z}\} \implies    & (z)P \xrightarrow{(z y) a x} P'
-        \end{align}
+        \end{align*}
     \end{definition}
     Note that all of the above can be easily generalised for action objects being k-length tuples rather than single values.
 

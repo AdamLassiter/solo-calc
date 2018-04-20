@@ -23,7 +23,7 @@
         \label{lambda-alpha-relation}
         Unbound variables within an expression may be substituted for any given value.
         This is formally expressed as:
-        \begin{align}
+        \begin{align*}
             x[y \defeq P] \defeq &
                 \begin{cases}
                     P & \text{if } x = y \\
@@ -34,13 +34,13 @@
                     \lambda x . M & \text{if } x = y \\
                     \lambda x . (M[y \defeq P]) & \text{if } x \neq y \text{ and } x \notin FV(P)~\footnotemark
                 \end{cases}
-        \end{align}\footnotetext{Here, $FV(P)$ is the set of all variables $x$ such that $x$ is free (unbound) in $P$.}
+        \end{align*}\footnotetext{Here, $FV(P)$ is the set of all variables $x$ such that $x$ is free (unbound) in $P$.}
     \end{definition}
     This operation may be thought of as variable renaming as long as both old and new names are free in the expression in which they were substituted.
 
     \begin{corollary*}{($\alpha$-equivalence)\\}
         The above definition of $\alpha$-substitution may be extended to give an equivalence relation on expressions, $\alpha$-equivalence, defined as:
-        \begin{align}
+        \begin{align*}
             y \notin FV(M) & \implies \lambda x . M \equiv_\alpha \lambda y \, (M[x \defeq y]) \\
             M \equiv_\alpha M' & \implies
                 \begin{cases}
@@ -48,14 +48,14 @@
                     P \, M \equiv_\alpha P \, M' \\
                     \lambda x . M \equiv_\alpha \lambda x. M'
                 \end{cases}
-        \end{align}
+        \end{align*}
     \end{corollary*}
 
 
     \begin{definition}{($\beta$-reduction)\\}
         An expression may be simplified by applying one term to another through substitution of a term for a bound variable.
         This is formally expressed as:
-        \begin{align}
+        \begin{align*}
             (\lambda x . P) \, Q   & \rightarrow_\beta P[x \defeq Q] \\
             M \rightarrow_\beta M' & \implies
                 \begin{cases}
@@ -63,15 +63,15 @@
                     M \, P \rightarrow_\beta M' P \\
                     \lambda x . M \rightarrow_\beta \lambda x . M'
                 \end{cases}
-        \end{align}
+        \end{align*}
     \end{definition}
     Often $\beta$-reduction requires several steps at once and as such these multiple $\beta$-reduction steps are abbreviated to $\rightarrow_\beta^*$.
 
     \begin{corollary*}{($\beta$-equivalence)\\}
         The above definition of $\beta$-reduction may be extended to give an equivalence relation on expressions, $beta$-equivalence, defined as:
-        \begin{equation}
+        \begin{equation*}
             M \rightarrow_\beta^* P \text{ and } N \rightarrow_\beta^* P \implies M \equiv_\beta N
-        \end{equation}
+        \end{equation*}
     \end{corollary*}
     
 
@@ -93,18 +93,18 @@
     \begin{definition}{(List)\\}
         Within the $\lambda$-calculus, lists may be encoded through the use of an arbitrary ${cons}$ function that takes a head element and a tail list and of a ${null}$ function that signifies the end of a list.
         The list is then constructed as a singly-linked list might be constructed in other languages:
-        \begin{equation}
+        \begin{equation*}
             [x_1, \ldots, x_n] \defeq \lambda c . \lambda n . (c \, x_1 \, (\ldots (c \, x_n \, n) \ldots) )
-        \end{equation}
+        \end{equation*}
     \end{definition}
 
 
     \begin{definition}{(Map)\\}
         The $map$ function takes two arguments --- a function $F$ that itself takes one argument and a list of suitable arguments $[x_1, \ldots, x_n]$ to this function.
         The output is then a list of the output of F when applied to each $x_1 \ldots x_n$.
-        \begin{equation}
+        \begin{equation*}
             {map} \defeq \lambda f . \lambda l . (\lambda c . (l \, (\lambda x . c \, (f \, x))))
-        \end{equation}
+        \end{equation*}
     \end{definition}
 
 

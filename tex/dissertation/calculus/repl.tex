@@ -1,10 +1,12 @@
 \subsection{Read-Eval-Print-Loop Implementation}
     \subsubsection{Analysis}
         A simple REPL interface was constructed to interact with the code written in~\ref{ssec:calculus-implementation}.
-        This was done using extended regular expressions\footnotemark~similar to those found in the Perl programming language.
+        This was done using extended regular expressions similar to those found in the Perl programming language.
+        These do not meet the normal definitions of regular expressions as they additionally support recursive matches, backreferences and various other syntactic additions that make them context-free grammars rather than regular expressions.
+        In fact, given a suitable engine for applying context-free grammars, this would be a preferable way to parse expressions. \\
+
         For each agent, there was an extended regex matching its string representation, with backreferences to extract the necessary data.
         Each of $(?P\langl name \rangl \textit{expression})$ represents a named backreference to the given expression and $(? \, \& rec)$ is a recursive call to the outer $(?\langl rec \rangl \textit{expression})$ expression.
-        \footnotetext{These do not meet the normal definitions of regular expressions as they additionally support recursive matches, backreferences and various other syntactic additions that make them context-free grammars rather than regular expressions.}
         
         \begin{definition}{(Solo Matching)\\}
             Solos are built using the regex as follows:
@@ -21,7 +23,6 @@
                 ! P \quad \longleftarrow \quad \backslash s? \; !(?P \langl agent \rangl.*)\backslash s?
             \end{align*}
             where \texttt{agent} represents $P$ for the expression $!P$.
-            It should be noted that this expression must match the whole string, as the trailing $)$ intends to match the end of the expression.
         \end{definition}
 
         \begin{definition}{(Scope)\\}
@@ -33,16 +34,41 @@
         \end{definition}
 
         \begin{definition}{(Composition)\\}
-            Compositions are build using the recursive regex as follows:
+            Compositions are built using the recursive regex as follows:
             \begin{align*}
-                (P_1 | \ldots | P_n) \quad \longleftarrow \quad & \backslash s? \backslash (?\langl agents\rangl~\texttt{R}+) (\backslash | (?\&agents))?)\backslash )\backslash s? \\
-                \text{where } \texttt{R} \quad \defeq \quad & (?\langl agent\rangl([^{\wedge}|()] | (?\langl rec\rangl\backslash ((?:[^{\wedge}()]++|(?\&rec))*\backslash )))
+                P_1 \, | \ldots | \, P_n \quad \longleftarrow \quad & \backslash s? \backslash (?\langl agents\rangl~\texttt{R}+) (\backslash | (?\&agents))?)\backslash )\backslash s? \\
+                \text{where} \quad \texttt{R} \quad \defeq \quad & (?\langl agent\rangl([^{\wedge}|()] | (?\langl rec\rangl\backslash ((?:[^{\wedge}()]++|(?\&rec))*\backslash )))
             \end{align*}
             where each \texttt{agent} is collected in \texttt{agents} and represents each of $P_1 \ldots P_n$.
-            It is accepted that this is difficult to read and would benefit from a better-structured parsing system.
-            However, for this project and as a write-once solution, it is suitable enough.
         \end{definition}
+        It is accepted that this is difficult to read and would benefit from a better-structured parsing system.
+        However, for this project and as a write-once solution, it is suitable enough.
 
 
-    \subsubsection{Testing and Correctness}
+    \subsubsection{Testing and Correctness}\label{sssec:repl-testing}
+        Testing was first done of the structural equivalence and equality of expressions.
+        First, for each of the congruences described above, a normalised expression and its known normal form were tested for equality.
+        Testing of reductions was done through testing each of the four cases of fusions being performed:
+        \begin{itemize}
+            \item Normal fusion $(\tilde{x})(a \tilde{x} \,|\, \bar{a} \, \tilde{y})$
+            \item Cross-replicator fusion $(\tilde{x})(a \, \tilde{x} \,|\, !(\bar{a} \, \tilde{y}))$
+            \item Multi-replicator fusion $(\tilde{x})(!(a \, \tilde{x}) \,|\, !(\bar{a} \, \tilde{y}))$
+            \item Inter-replicator fusion $(\tilde{x})(!(a \, \tilde{x} \,|\, \bar{a} \, \tilde{y}))$
+        \end{itemize} 
+        where for each, there exist approximately four cases of which variables are bound and where the matching scope lies.
+        Finally, a test of an expression containing all of the above agents was reduced and checked for correctness. \\ %% TODO: No it wasn't
+
+        Due to the open-endedness of the problem, it is difficult to provide a conclusive, complete testing suite.
+        In particular, checking for false positives presents a large space of possible tests.
+        This was managed by reducing to the above unit tests and combining with the integration test of each case of fusion.
+
+        A sample of test outputs can be found in~\ref{ssec:appendix-calculus-tests}
+
+
     \subsubsection{Discussion}
+        No research was done as to the usability of this interface.
+        Future work would vastly improve the description provided here, particularly with regards to error-reporting.
+        Another notable flaw is a disconnect between text inputted and outputted, for example \textit{$^{\wedge}$p a b c} $\rightarrow$ \textit{$\bar{p}$ a b c}.\\
+
+        With further work on the project, I would have hoped to embed this REPL interface in the REST server described in~\ref{ssec:rest-server}.
+        Through this, the diagram presented by the server could be changed on the server-side.

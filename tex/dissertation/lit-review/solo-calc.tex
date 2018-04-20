@@ -40,7 +40,7 @@
 
     \begin{definition}{(Reduction)\\}
         Reduction semantics on solo expressions are defined as:
-        \begin{align}
+        \begin{align*}
             (x)(\bar{u} \, x \, | \, u \, y \, | \, P) \rightarrow & \, P\{y / x\} \\
             P \rightarrow P' \implies &
             \begin{cases}
@@ -48,7 +48,7 @@
                 (x) \, P \rightarrow (x) \, P' \\
                 P \equiv Q \text{ and } P' \equiv Q' \implies Q \rightarrow Q'
             \end{cases}
-        \end{align}
+        \end{align*}
         where $P\{y / x\}$ is $\alpha$-substitution of the name $x$ to the name $y$.
     \end{definition}
     It is interesting to note here the asynchronous behaviour of the Solo calculus.
@@ -75,12 +75,10 @@
 
     \begin{definition}{(Edge)\\}
         An edge is defined to be:
-        \begin{align}
+        \begin{align*}
             E \defeq \, \langl a, a_1 \ldots a_k\rangl_t \quad \text{for } t \in \{ i, o \}
-        \end{align}
-        where $a, a_i$ are \textit{nodes}, $\langl\ldots
-angl_i$ is an \textit{input edge}, $\langl\ldots
-angl_o$ is an \textit{output edge} and $k$ the edge's \textit{arity}.
+        \end{align*}
+        where $a, a_i$ are \textit{nodes}, $\langl\ldots angl_i$ is an \textit{input edge}, $\langl\ldots angl_o$ is an \textit{output edge} and $k$ the edge's \textit{arity}.
     \end{definition}
 
     \begin{figure}[H]
@@ -117,9 +115,9 @@ angl_o$ is an \textit{output edge} and $k$ the edge's \textit{arity}.
 
     \begin{definition}{(Box)\\}
         A box is defined to be:
-        \begin{align}
+        \begin{align*}
             B \defeq \, \langl G, S \rangl \quad \text{for } S \subset nodes(G)\footnotemark
-        \end{align}\footnotetext{This is written as shorthand for all nodes contained within a given object, in this case $\{a \text{ s.t. } a \in nodes(S),\, S \in G \}$}
+        \end{align*}\footnotetext{This is written as shorthand for all nodes contained within a given object, in this case $\{a \text{ s.t. } a \in nodes(S),\, S \in G \}$}
         where G is a \textit{graph} (or multiset of \textit{edges}) and S is a set of \textit{nodes}, referred to as the \textit{internal nodes} of $B$.
         The \textit{principal nodes} of $B$ are then $nodes(G) \setminus S$.
     \end{definition}
@@ -151,9 +149,9 @@ angl_o$ is an \textit{output edge} and $k$ the edge's \textit{arity}.
 
     \begin{definition}{(Diagram)\\}
         A solo diagram is defined to be:
-        \begin{align}
+        \begin{align*}
             SD \defeq (G, M, \ell)
-        \end{align}
+        \end{align*}
         where $G$ is a finite multiset of \textit{edges}, $M$ is a finite multiset of \textit{boxes} and $\ell$ a labelling of the $nodes(G)$ and of $principals(M)$.
     \end{definition}
     From here, we can convert Solo calculus to diagrams, where composition is intuitively just including two separate diagrams together and scope is simply any connected nodes labelled by $\ell$.
@@ -164,12 +162,12 @@ angl_o$ is an \textit{output edge} and $k$ the edge's \textit{arity}.
         Let $G, G_1, G_2 \ldots$ be arbitrary graphs, $M, M'$ arbitrary box multisets, $\alpha \defeq \langl a, a_1 \ldots a_k\rangl_i$, $\beta \defeq \langl a, a_1' \ldots a_k'\rangl_o$, $\sigma \defeq a_i \mapsto a_i'$, $\rho$ a arbitrary but fresh relabelling and $G\sigma$ shorthand for $G[\sigma]$ the application of the renaming $\sigma$ on the edges of G.
         $\alpha$ and $\beta$ need not be fixed to input and output respectively, but must be opposite polarity.
         Then, the following reductions may be made:
-        \begin{align}
+        \begin{align*}
             (G \cup \{\alpha, \beta\}, M, \ell)                                                                             & \rightarrow (G\sigma, M\sigma, \ell') \\
             (G_1 \cup \{\alpha\}, M \defeq \langl G_2 \cup \{\beta\}, S\rangl, \ell)                                        & \rightarrow ((G_1 \cup G_2\rho)\sigma, M\sigma, \ell') \\
             (G, M \defeq \{\langl \{ \alpha \} \cup G_1, S_1\rangl,\langl \{ \beta \} \cup G_2, S_2\rangl\} \cup M', \ell)    & \rightarrow ((G \cup G_1\rho \cup G_2\rho)\sigma, M\sigma, \ell') \\
             (G, M \defeq \langl \{ \alpha, \beta \} \cup G_1, S\rangl \cup M', \ell)                                          & \rightarrow ((G \cup G_1\rho)\sigma, M\sigma, \ell')
-        \end{align}
+        \end{align*}
         where each represents reduction of an edge-edge, edge-box, box-box and of box internals respectively.
     \end{definition}
 
