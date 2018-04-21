@@ -19,16 +19,17 @@ The project can be run from the [src/](src) directory without any need for compi
 Currently the system exists in three major parts.
 
 ### Calculus
-Found under the [calculus/](/src/calculus) directory, this provides an implementation of the solo calculus, as well as an interface to interact with.  
-Executing the [tests.py](/src/calculus/tests.py) file runs all available unit tests, while the [repl.py](src/calculus/repl.py) file provides a REPL interface.
+Found under the [/src/calculus/](/src/calculus) directory, this provides an implementation of the solo calculus, as well as an interface to interact with.  
+Executing the [tests.py](/src/calculus/tests.py) file runs all available unit tests.
+Executing the [repl.py](src/calculus/repl.py) file provides a REPL interface.
 
 ### Diagrams
-Found under the [diagrams/](/src/diagrams) directory, this provides an implementation only of solo diagrams.  
+Found under the [src/diagrams/](/src/diagrams) directory, this provides an implementation only of solo diagrams.  
 Executing the [tests.py](/src/diagrams/tests.py) file runs all available unit tests.  
 Executing the [rest.py](/src/diagrams/rest.py) file starts a Flask server on localhost:8001 to be used by the visualisation.
 
 ### Visualisation
-Found under the [visualisation/](/src/visualisation) directory, this provides a visualisation only of solo diagrams, with a symlinked data file [graph.json](/src/diagrams/graph.json).  
+Found under the [src/visualisation/](/src/visualisation) directory, this provides a visualisation only of solo diagrams, with a symlinked data file [graph.json](/src/diagrams/graph.json).  
 Running a web-server on [index.html](/src/visualisation/index.html) will produce an interactive output within a web-browser pointed at the server page (by default, this is on localhost:8000).  
 For this to function, there must be an instance of [rest.py](/src/diagrams/rest.py) running locally to the server as a Flask server
 
