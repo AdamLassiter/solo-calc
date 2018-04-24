@@ -1,6 +1,6 @@
 \subsection{Calculus Implementation}\label{ssec:calculus-implementation}
     
-    \subsubsection{Analysis}\label{sssec:calculus-analysis}
+    \subsubsection{Overview and Analysis}\label{sssec:calculus-analysis}
         The implementation of reduction semantics and calculus objects was achieved through converting all expressions to a canonical normal form.
         First, we must gather some possible structural congruences.
 
@@ -87,10 +87,10 @@
                 \Require{Agent $P$}
                 \Ensure{Agent $P'$, a reduction of $P$}
                 \Function{Reduce}{$P$}
-                    \For{$i \in inputs(P)$} \Comment{$inputs(P) \equiv \{x \in solos(P) \;|\; x \text{ an input}\}$}
-                        \For{$o \in outputs(P)$} \Comment{$outputs(P) \equiv \{x \in solos(P) \;|\; x \text{ an output}\}$}
+                    \ForEach{$i \in inputs(P)$} \Comment{$inputs(P) \equiv \{x \in solos(P) \;|\; x \text{ an input}\}$}
+                        \ForEach{$o \in outputs(P)$} \Comment{$outputs(P) \equiv \{x \in solos(P) \;|\; x \text{ an output}\}$}
                             \If{$i$ agrees with $o$} \Comment{`agrees' $\equiv$ matching subject and arity}
-                                \State$\sigma :=$ \Call{Fuse}{$i$, $o$, $bn(P)$}
+                                \State$\sigma \defeq$ \Call{Fuse}{$i$, $o$, $bn(P)$}
                                 \If{$\sigma \neq \textit{none}$}
                                     \State\Return$\sigma(P - \{i, o\})$
                                 \EndIf
@@ -113,7 +113,7 @@
         For each disconnected subgraph, or partition, the span of names forms a set which must all be fused into one another.
         Subsequently, there must be at most one free name in this set as two or more would require renaming one free name to another, which is not allowed.
         If no free name exists, a bound name is chosen as the `free name' at random.
-        $\sigma$ is then constructed by $\sigma(bn) := fn$.
+        $\sigma$ is then constructed by $\sigma(bn) \defeq fn$.
 
         \begin{breakablealgorithm}
             \caption{Fusion of Solos}
@@ -121,25 +121,75 @@
                 \Require{$i_1 \ldots i_n \text{ objects of solo } i, \quad o_1 \ldots o_n \text{ objects of solo } o, \quad bn \; \text{set of bound names}$}
                 \Ensure{$\sigma : bn \rightarrow names(i) \cup names(o)$ or \textit{none}}
                 \Function{Fuse}{$i_1 \ldots i_n$, $o_1 \ldots o_n$, $bn$}
-                    \State$\texttt{Graph} \; g := \{(i_j, o_j) \; | \; 1 \leq j \leq n\}$
-                    \State$\texttt{Map} \; \sigma := id$
+                    \State$\texttt{Graph} \; g \defeq \{(i_j, o_j) \; | \; 1 \leq j \leq n\}$
+                    \State$\texttt{Map} \; \sigma \defeq id$
                     \ForEach{$\texttt{Graph} \; \bar{g} \in partitions(g)$}
-                        \State$isect := nodes(\bar{g}) - bn$
+                        \State$isect \defeq nodes(\bar{g}) - bn$
                         \If{$|isect| = 0$}
-                            \State$fn := x \in nodes(\bar{g})$
+                            \State$fn \defeq x \in nodes(\bar{g})$
                         \ElsIf{$|isect| = 1$}
-                            \State$fn := x \in isect$
+                            \State$fn \defeq x \in isect$
                         \Else
                             \State\Return\textit{none}
                         \EndIf
                         \ForEach{$name \in nodes(\bar{g}) - \{fn\}$}
-                            \State$\sigma(name) := fn$
+                            \State$\sigma(name) \defeq fn$
                         \EndFor
                     \EndFor
                     \State\Return$\sigma$
                 \EndFunction
             \end{algorithmic}
         \end{breakablealgorithm}
+        
+        \begin{examples}
+            \begin{figure}[H]
+                \centering
+                \begin{tikzpicture}[transform shape, every node/.style={circle, fill=black!100, inner sep=0.05cm}]
+                    \coordinate[anchor=center](center);
+                    \coordinate[left=2cm of center](centerleft);
+                    \node[left=0.86cm of centerleft, label=left:{$a$}](a){};i
+                    \node[above=0.5cm of centerleft, label=above:{$b$}](b){};
+                    \node[below=0.5cm of centerleft, label=below:{$c$}](c){};
+                    \draw[-] (a) -- (b) -- (c) -- (a);
+                    
+                    \node[above=0.5cm of center, label=above:{$d$}](d){};
+                    \node[below=0.5cm of center, label=below:{$f$}](f){};
+                    \draw[-] (d) -- (f);
+
+                    \coordinate[right=2cm of center](centerright);
+                    \node[above=0.5cm of centerright, label=above:{$e$}](e){};
+                    \node[below=0.5cm of centerright, label=below:{$g$}](g){};
+                    \draw[-] (e) -- (g);
+                \end{tikzpicture}
+                \caption*{$\texttt{Fuse}((a, b, c, d, e), \; (b, c, a, f, g)) \rightarrow \{\{a, b, c\}, \{d, f\}, \{e, g\}\}$}
+                
+                \vspace{3em}
+                
+                \begin{tikzpicture}[transform shape, every node/.style={circle, fill=black!100, inner sep=0.05cm}]
+                    \coordinate[anchor=center](center);
+                    \coordinate[below=0.5cm of center](fudgefactor);
+                    \coordinate[left=2cm of fudgefactor](centerleft);
+                    \node[above left=1cm of centerleft, label=above left:{$b$}](lal){};
+                    \node[above right=1cm of centerleft, label=above right:{$c$}](lar){};
+                    \node[below=1cm of lal, label=below left:{$d$}](lbl){};
+                    \node[below=1cm of lar, label=below right:{$e$}](lbr){};
+                    \node[above right=1cm of lal, label=above:{$a$}](lac){};
+                    \draw[-] (lbl) -- (lal) -- (lac) -- (lar) -- (lbr);
+                    \draw[-] (lar) -- (lal);
+
+                    \coordinate[right=2cm of center](centerright);
+                    \node[label=above left:{$w$}](rc) at (centerright) {};
+                    \node[above=1cm of centerright, label=above:{$u$}](ra){};
+                    \node[left=1cm of centerright, label=left:{$v$}](rl){};
+                    \node[right=1cm of centerright, label=right:{$x$}](rr){};
+                    \node[below=1cm of centerright, label=below:{$z$}](rb){};
+                    \node[left=1cm of rb, label=left:{$y$}](rbl){};
+                    \draw[-] (ra) -- (rc) -- (rb) -- (rbl);
+                    \draw[-] (rl) -- (rc) -- (rr);
+                \end{tikzpicture}
+                \caption*{$\texttt{Fuse}((a, a, u, b, b, c, v, w, w, y), \; (b, c, w, c, d, e, w, x, z, z)) \rightarrow \{\{a, b, c, d, e\}, \{u, v, w, x, y, z\}\}$}
+            \end{figure}
+        \end{examples}
 
         This forms a complete implementation of non-replicating parts of the calculus.
         To avoid the implementation problems with replicators mentioned in~\cite{solo-diagrams}, it is necessary to only perform expansions on replicators that can be reduced.
@@ -154,14 +204,14 @@
                 \Require{Agent $P$}
                 \Ensure{Agent $P'$, a reduction of $P$}
                 \Function{Reduce}{$P$}
-                    \For{$i \in inputs(P)$}
+                    \ForEach{$i \in inputs(P)$}
                         \State$\ldots$
                     \EndFor\\
 
-                    \For{$i \in \bigcup_{r \in reps(P)} inputs(r)$} \Comment{$reps(P) \equiv \{x \in P \;|\; x \text{ a replicator}\}$}
-                        \For{$o \in \bigcup_{r \in reps(P)} outputs(r)$}
+                    \ForEach{$i \in \bigcup_{r \in reps(P)} inputs(r)$} \Comment{$reps(P) \equiv \{x \in P \;|\; x \text{ a replicator}\}$}
+                        \ForEach{$o \in \bigcup_{r \in reps(P)} outputs(r)$}
                             \If{$i$ agrees with $o$}
-                                \State$\sigma :=$ \Call{Fuse}{$i$, $o$, $bn(P) \cup bn(r_i) \cup bn(r_o)$} \Comment{$r_x \equiv r \in reps(P) \;|\; x \in solos(r)$}
+                                \State$\sigma \defeq$ \Call{Fuse}{$i$, $o$, $bn(P) \cup bn(r_i) \cup bn(r_o)$} \Comment{$r_x \equiv r \in reps(P) \;|\; x \in solos(r)$}
                                 \If{$\sigma \neq \textit{none}$}
                                     \State\Return$P \cup \{expand(r_i), \; expand(r_o)\}$ \Comment{$expand(!R) \equiv R$}
                                 \EndIf
@@ -250,4 +300,27 @@
 
         The above example is further amplified when manipulating expressions symbolically.
         When searching for reducible patterns, the expression is divided and recombined, rearranging the expression tree and subsequently each node's parents.
-        While the problem is solvable through updating which node has which parent as the expression is rearranged and manipulated, the solution eventually becomes an attempt to form a normal form out of the expression, leading to the revised method described in~\ref{sssec:calculus-analysis}.
+        While the problem is solvable through updating which node has which parent as the expression is rearranged and manipulated, the solution eventually becomes an attempt to form a normal form out of the expression, leading to the revised method described in~\ref{sssec:calculus-analysis}.\\
+
+        Through the implementation of the calculus, many interesting properties became apparent, with some of the most noticeable listed below.
+
+        \begin{lemma*}{Non-Finite Reductions\\}
+            There exist expressions for which reductions may be performed indefinitely.
+            For a reduction to be non-finite, both solos must be replicable.
+            In particular, expressions of the form $(!(\tilde{x})(u \, \tilde{x} \; | \; P) \; | \; !(\bar{u} \, \tilde{y} \; | \; Q) \; | \; R)$ are non-finite.
+        \end{lemma*}
+
+        \begin{example*}{~\\}
+            Consider the following expressions, each a fusion of a bound $x$ and free $y$:
+            \begin{align*}
+                P \rightarrow P'\{y / x\} & \text{ where } x \in \; !(x)Q \in P \text{ and } y \in \; !R \in P \\
+                (x)P \rightarrow P'\{y / x\} & \text{ where } x \in \; !Q \in P \text{ and } y \in \; !R \in P
+            \end{align*}
+            The first expression may be reduced indefinitely, each time adding the expansion of $Q$ to $P$.
+            The second may be performed once, after which each $x$ in $Q$ is renamed to $y$.
+            It is then ambiguous as to whether it may be performed again --- on one hand the fusion is on two free names, on the other the two names are the same, so there is only one distinct free name.
+        \end{example*}
+
+        \begin{remark*}{Behaviour of Trivial Reductions\\}
+            For this body of work, since the reduction requires $\sigma : \emptyset \rightarrow \emptyset$, it was assumed that under such conditions a reduction should not be seen to have happened.
+        \end{remark*}

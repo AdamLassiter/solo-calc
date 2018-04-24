@@ -1,9 +1,10 @@
 \documentclass{article}
 
-\input{preamble}
+\input{meta/preamble}
 
 \title{Dance of the Solos \\
-    \large On the graphical representation of Solo Diagrams}
+    \large On the graphical representation of Solo Diagrams \\~\\
+    \small \url{https://github.com/AdamLassiter/solo-calc}}
 
 \author{Adam Lassiter}
 
@@ -38,17 +39,23 @@
     \pagebreak
 
     \section{Introduction}
-        \input{introduction/introduction} %% TODO: Improve
+        \input{meta/introduction} %% TODO: Improve
 
     \section{Literature}
         \input{lit-review/lambda-calc}
         \input{lit-review/ccs}
-        \input{lit-review/pi-calc}
-        \input{lit-review/fusion-calc}
+        \input{lit-review/pi-calc} %% TODO: Very little written here
+        \input{lit-review/fusion-calc} %% TODO: Little written, but too similar-but-different to justify more
         \input{lit-review/solo-calc} %% TODO: Improve
+        \input{lit-review/solo-diagrams} %% TODO: Probably improve, note on bigraphs
+        \begin{remarks}
+            The Solo calculus is found to be simple, expressive and remarkable in its capability to be visualised as a diagram.
+            For further reading,~\cite{acyclic-solos} present in great detail the topics of the $\pi$ and Solo calculus, solo diagrams and furthermore differential interaction nets.
+        \end{remarks}
 
     \section{Technology}
         \input{tech-review/graph-vis} %% TODO: Improve
+        %% TODO: Section on programming languages used?
 
     \section{Solo Calculus}
         \input{calculus/results}
@@ -58,10 +65,7 @@
     \section{Solo Diagrams}
         \input{diagrams/results}
         \input{diagrams/diagrams}
-        \input{diagrams/rest}
-
-    \section{Diagram Visualisation}
-        \input{visualisation/visualisation}
+        \input{diagrams/visualisation}
 
     \section{Conclusion}
 

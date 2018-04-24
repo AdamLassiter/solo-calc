@@ -5,7 +5,7 @@
     It has since become a popular formal system within which to study properties of computation.
 
 
-    \begin{definition}{(Syntax)\\}
+    \begin{definition}{Syntax\\}
         \label{lambda-calculus-syntax}
         The $\lambda$-calculus, as defined by Church but here explained by~\cite{lambda-calculus}\footnote{While Church's original paper is still available, the source cited is found to be more relevant due to research in the subject area since the original paper's publication in the 1930s.} consists of an expression $M$ built from the following terms:
         \begin{center}
@@ -19,7 +19,7 @@
     From this, any computable function can be constructed and computation is achieved through a series of operations on the expression.
 
 
-    \begin{definition}{($\alpha$-substitution)\\}
+    \begin{definition}{$\alpha$-substitution\\}
         \label{lambda-alpha-relation}
         Unbound variables within an expression may be substituted for any given value.
         This is formally expressed as:
@@ -38,7 +38,7 @@
     \end{definition}
     This operation may be thought of as variable renaming as long as both old and new names are free in the expression in which they were substituted.
 
-    \begin{corollary*}{($\alpha$-equivalence)\\}
+    \begin{corollary*}{$\alpha$-equivalence\\}
         The above definition of $\alpha$-substitution may be extended to give an equivalence relation on expressions, $\alpha$-equivalence, defined as:
         \begin{align*}
             y \notin FV(M) & \implies \lambda x . M \equiv_\alpha \lambda y \, (M[x \defeq y]) \\
@@ -52,7 +52,7 @@
     \end{corollary*}
 
 
-    \begin{definition}{($\beta$-reduction)\\}
+    \begin{definition}{$\beta$-reduction\\}
         An expression may be simplified by applying one term to another through substitution of a term for a bound variable.
         This is formally expressed as:
         \begin{align*}
@@ -67,7 +67,7 @@
     \end{definition}
     Often $\beta$-reduction requires several steps at once and as such these multiple $\beta$-reduction steps are abbreviated to $\rightarrow_\beta^*$.
 
-    \begin{corollary*}{($\beta$-equivalence)\\}
+    \begin{corollary*}{$\beta$-equivalence\\}
         The above definition of $\beta$-reduction may be extended to give an equivalence relation on expressions, $beta$-equivalence, defined as:
         \begin{equation*}
             M \rightarrow_\beta^* P \text{ and } N \rightarrow_\beta^* P \implies M \equiv_\beta N
@@ -90,7 +90,7 @@
 
     As computational calculus shares many parallels with modern functional programming, the following are encodings of some common functional concepts within the $\lambda$-calculus.
 
-    \begin{definition}{(List)\\}
+    \begin{definition}{List\\}
         Within the $\lambda$-calculus, lists may be encoded through the use of an arbitrary ${cons}$ function that takes a head element and a tail list and of a ${null}$ function that signifies the end of a list.
         The list is then constructed as a singly-linked list might be constructed in other languages:
         \begin{equation*}
@@ -99,7 +99,7 @@
     \end{definition}
 
 
-    \begin{definition}{(Map)\\}
+    \begin{definition}{Map\\}
         The $map$ function takes two arguments --- a function $F$ that itself takes one argument and a list of suitable arguments $[x_1, \ldots, x_n]$ to this function.
         The output is then a list of the output of F when applied to each $x_1 \ldots x_n$.
         \begin{equation*}

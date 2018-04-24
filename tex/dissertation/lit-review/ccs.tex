@@ -8,7 +8,7 @@
     For reasons discussed in~\ref{subsec:pi-calculus}, it did not become as mainstream as the $\lambda$-calculus but did serve as an important basis for study in the subject distinct from Church's single-process model.
 
 
-    \begin{definition}{(Syntax)\\}
+    \begin{definition}{Syntax\\}
         Within CCS, a process $P$ is defined as:
         \begin{center}
             \begin{tabular}{ l l l }
@@ -34,7 +34,7 @@
     Due to the increased amount of syntax, CCS has many more rules and semantics for computation than the $\lambda$-calculus.
     Here $\xrightarrow{a}$ describes reduction through taking an arbitrary action $a$.
 
-    \begin{definition}{(Action Semantics)\\}
+    \begin{definition}{Action Semantics\\}
         Given two processes waiting on input/output, eventually an input/output action will happen.
         This gives the reductions as follows:
         \begin{align*}
@@ -45,7 +45,7 @@
     \end{definition}
 
 
-    \begin{definition}{(Composition Semantics)\\}
+    \begin{definition}{Composition Semantics\\}
         For such an action $a$ taking place, the following reductions can be made:
         \begin{align*}
             P \xrightarrow{a} P' \implies &
@@ -64,7 +64,7 @@
     This leads to what is described as the Tea/Coffee Problem.
 
 
-    \begin{example*}{(Tea/Coffee Problem)\\}
+    \begin{example*}{Tea/Coffee Problem\\}
         Suppose there is a machine that, when given a coin, will dispense either tea or coffee.
         A user comes to insert a coin to get some tea.
         This system could be described as:
@@ -88,7 +88,7 @@
     \end{example*}
 
 
-    \begin{remark*}{(A Note on Traces and Bisimulation)\\}
+    \begin{remark*}{A Note on Traces and Bisimulation\\}
         The idea of both \textit{trace} and \textit{bisimulation} are attempts to define a system for analysing \textit{behavioural equivalence}.
         That is, given two programs that are written very different but behave similarly, is their behaviour exactly equivalent. \\
 
@@ -115,7 +115,7 @@
     \end{remark*}
 
 
-    \begin{definition}{(Restriction Semantics and Relabelling)\\}
+    \begin{definition}{Restriction Semantics and Relabelling\\}
         Restrictions and relabellings hold the property:
         \begin{align*}
             P \xrightarrow{a x} P' \implies
@@ -128,7 +128,7 @@
     That is, a process is equivalent under renaming if any actions on that process are also renamed.
 
 
-    \begin{definition}{(Identifier Semantics)\\}
+    \begin{definition}{Identifier Semantics\\}
         Suppose a behaviour identifier $b$ is defined (possibly recursively) as $b(x_1 \ldots x_n) \impliedby P$, and that for the process $P$, $FV(P) \subseteq \{x_1 \ldots x_n\}$.
         Then processes may be reduced as follows:
         \begin{align*}
