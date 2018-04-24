@@ -46,6 +46,7 @@ class Node(str):
         obj = super().__new__(cls, uuid)
         obj._name = name
         obj._uuid = uuid
+        obj.group = 1
         return obj
 
 
@@ -70,7 +71,7 @@ class Node(str):
     
     @property
     def json(self) -> dict:
-        return {'id': self._uuid, 'title': self._name, 'r': self.size}
+        return {'id': self._uuid, 'title': self._name, 'r': self.size, 'group': self.group}
 
 
     @staticmethod
@@ -186,10 +187,11 @@ class Graph(multiset):
 
     @property
     def json(self) -> dict:
-        return {'nodes': [node.json for node in (self.nodes
-                                                | {edge._node for edge in self})],
-                'edges': reduce(lambda a, b: a + [b.json], self, []),
-                'id': self._uuid}
+        return {
+            'nodes': [node.json for node in (self.nodes | {edge._node for edge in self})],
+            'edges': reduce(lambda a, b: a + [b.json], self, []),
+            'id': self._uuid
+        }
     
 
     @staticmethod
@@ -218,7 +220,12 @@ class Box(pair):
         self.graph = graph
         self.internals = internals
         self._uuid = uuid if uuid else str(uuid4())
-
+        for node in self.graph.nodes:
+            node.group = 2
+        for node in self.principals:
+            node.group = 3
+       
+        
 
     @property
     def nodes(self) -> set:

@@ -9,7 +9,7 @@ var svg = d3.select("body")
     .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-var color = d3.scaleOrdinal(d3.schemeCategory20);
+var color = d3.scaleOrdinal(d3.schemeCategory10);
 
 var simulation = d3.forceSimulation()
     .force("link", d3.forceLink().id(function(d) { return d.id; }))
