@@ -1,9 +1,9 @@
 # Dance of the Solos
-A Python/d3.js implementation of the solo calculus and of solo diagrams.  
+A Python/d3.js implementation of the Solo Calculus and of Solo Diagrams.  
 This forms the submission for CM30082 Dissertation, MComp Comp.Sci. w/ Maths. for Adam Lassiter, University of Bath, GB, 2017-18.
 
 ## Prerequisites
-The following do not represent minimum requirements, but those used in production and testing.
+The following do not represent minimum requirements, but those used in development and testing.
 * Python 3.7
     * Multiset >= 2.0.0
     * regex >= 2018.2.8
@@ -19,18 +19,19 @@ The project can be run from the [src/](src) directory without any need for compi
 Currently the system exists in three major parts.
 
 ### Calculus
-Found under the [calculus/](/src/calculus) directory, this provides an implementation of the solo calculus, as well as an interface to interact with.  
-Executing the [tests.py](/src/calculus/tests.py) file runs all available unit tests, while the [repl.py](src/calculus/repl.py) file provides a REPL interface.
+Found under the [/src/calculus/](/src/calculus) directory, this provides an implementation of the Solo Calculus, as well as an interface to interact with.  
+Executing the [tests.py](/src/calculus/tests.py) file runs all available unit tests.
+Executing the [repl.py](src/calculus/repl.py) file provides a REPL interface.
 
 ### Diagrams
-Found under the [diagrams/](/src/diagrams) directory, this provides an implementation only of solo diagrams.  
+Found under the [src/diagrams/](/src/diagrams) directory, this provides an implementation only of Solo Diagrams.  
 Executing the [tests.py](/src/diagrams/tests.py) file runs all available unit tests.  
-Executing the [rest.py](/src/diagrams/rest.py) file starts a Flask server on localhost:8001 to be used by the visualisation.
+Executing the [rest.py](/src/diagrams/rest.py) file starts a Flask server on localhost:8001 to be used by the visualiser.
 
 ### Visualisation
-Found under the [visualisation/](/src/visualisation) directory, this provides a visualisation only of solo diagrams, with a symlinked data file [graph.json](/src/diagrams/graph.json).  
+Found under the [src/visualisation/](/src/visualisation) directory, this provides a visualisation only of Solo Diagrams.  
 Running a web-server on [index.html](/src/visualisation/index.html) will produce an interactive output within a web-browser pointed at the server page (by default, this is on localhost:8000).  
-For this to function, there must be an instance of [rest.py](/src/diagrams/rest.py) running locally to the server as a Flask server
+For this to function, there must be an instance of [rest.py](/src/diagrams/rest.py) running locally to the server as a Flask server.
 
 ## Contributing
 See [CONTRIBUTING.md](CONTRIBUTING.md) for details on code of conduct and the process for submitting pull requests.
