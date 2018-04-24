@@ -1,0 +1,18 @@
+\subsection{Visualiser and REST Server}\label{ssec:rest-server}
+
+    \subsubsection{Overview and Analysis}
+        \begin{itemize}
+            \item The visualisation of diagrams was done using force-directed graphs.
+            \item There was a communication channel between a back-end reduction engine and front-end diagram viewer.
+            \item REST server and PUSH/PUT/GET requests to the back-end prompted a response of a diagram reduction.
+            \item The returned object was then parsed to an SVG.
+            \item Nodes were tracked through reductions --- those not reduced inherited their position from the previous diagram, enforcing smoothness.
+            \item Various colours were applied to nodes depending upon their position relative to boxes (internal, perimeter, external).
+            \item Problems with nodes on perimeter of boxes --- as diagrams are defined as a collection  of edges, perimeter nodes are both internal and external nodes to a box.
+        \end{itemize}
+
+    \subsubsection{Testing and Correctness}
+        Pictures~\ldots
+
+    \subsubsection{Discussion}
+        idk
