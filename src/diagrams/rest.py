@@ -1,11 +1,9 @@
 #! /usr/bin/env python3
 
-from datetime import timedelta
-from functools import update_wrapper
 from json import dumps, loads
 from types import MethodType
 
-from flask import Flask, request, Response, make_response, current_app
+from flask import Flask, request, Response
 from flask_restful import Api, Resource
 from flask_cors import CORS
 
@@ -34,13 +32,13 @@ class ReduceRequestHandler(Resource):
 
 
     def get(self) -> Response:
-        return make_response(dumps(big_diagram().json), 200)
+        return dumps(big_diagram().json), 200
 
 
     def post(self):
         diagram = Diagram.from_json(loads(request.data))
         reduction = diagram.reduce()
-        return make_response(dumps(reduction.json), 200)
+        return dumps(reduction.json), 200
 
 
 
