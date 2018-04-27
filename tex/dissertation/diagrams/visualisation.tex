@@ -1,18 +1,47 @@
 \subsection{Visualiser and REST Server}\label{ssec:rest-server}
 
     \subsubsection{Overview and Analysis}
+        Diagrams produced by the above sections were visualised as graphs of nodes and edges within an SVG (scalable vector graphic).
+        Further, this graph was made interactive using ECMAScript's d3.js library, in particular using force-directed graphs.
+        This was coupled through a back-end server acting as a reduction engine with a representational state transfer (REST) architecture and a front-end webpage with ECMAScript components for interacting with the output of the server.\\
+
+        The REST server was a single endpoint with options of GET and POST requests.
+        GET returned an example diagram as a JSON object --- in particular, this was a collection of four disconnected diagrams, one for each type of edge reduction.
+        POST would, given a JSON object, reduce and return a new diagram.
+        
+        \begin{remark*}{Cross-Origin Resource Sharing (CORS)\\}
+            As a note on the bureaucracy of various web standards, the implementation written for this project involved making cross-origin HTTP requests.
+            By default, this behaviour is not allowed, so an additional CORS layer is wrapped around the server to allow such requests.
+        \end{remark*}~
+
+        The front-end visualisation was, in comparison, far more complex.
+        To begin, there would be a GET request to the REST server for the default diagram.
+        The returned JSON object was parsed to an SVG.
+        In particular, SVG groups were made of edges, nodes and boxes.
+        Each class of edge, node and box contained a set of polylines, a circle and a collection of both nodes and edges respectively.
+        Nodes were coloured depending upon the property of their position relative to boxes: external, perimeter or internal.\\
+
+        Interactivity was added using an ECMAScript script and additionally a `Reduce' button.
+        Each node was made draggable and forces were added to each node and edge.
+        In particular:
         \begin{itemize}
-            \item The visualisation of diagrams was done using force-directed graphs.
-            \item There was a communication channel between a back-end reduction engine and front-end diagram viewer.
-            \item REST server and PUSH/PUT/GET requests to the back-end prompted a response of a diagram reduction.
-            \item The returned object was then parsed to an SVG.
+            \item Edges were given spring forces to allow them to stretch on drag actions and contract to a relaxed length otherwise.
+            \item Nodes were given repulsive charges to allow them to spread themselves out evenly over the available space.
+            \item The graph as a whole was given a small central attractive charge to keep the graph centered in the viewing panel.
+        \end{itemize}
+        The `Reduce' button would then make a POST request to the REST server to update the current graph dataset with its reduction.\\
+
+        Due to the odd paradigms of the language, as follows is a unformatted extract of the script used
+
+        \begin{itemize}
             \item Nodes were tracked through reductions --- those not reduced inherited their position from the previous diagram, enforcing smoothness.
-            \item Various colours were applied to nodes depending upon their position relative to boxes (internal, perimeter, external).
             \item Problems with nodes on perimeter of boxes --- as diagrams are defined as a collection  of edges, perimeter nodes are both internal and external nodes to a box.
         \end{itemize}
 
+
     \subsubsection{Testing and Correctness}
         Pictures~\ldots
+
 
     \subsubsection{Discussion}
         idk

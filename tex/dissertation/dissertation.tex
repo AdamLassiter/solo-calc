@@ -35,7 +35,6 @@
 
         I would like to express my gratitude to Prof. Guy McCusker for his guidance and dedicated supervision of this project throughout.
         Further thanks are extended to my mother, whose constant support and advice on the politics and practices of academic writing have proven invaluable.
-        And finally, apologies to any friends I have kept awake countless times with loud remarks about implementation issues.\\
 
         Happy reading,\\
 
@@ -47,6 +46,8 @@
     \tableofcontents
     \pagebreak
 
+    %% TODO: Work on flow between sections
+
     \section{Introduction}
         \input{meta/introduction} %% TODO: Improve
 
@@ -55,12 +56,14 @@
         \input{lit-review/ccs}
         \input{lit-review/pi-calc} %% TODO: Very little written here
         \input{lit-review/fusion-calc} %% TODO: Little written, but too similar-but-different to justify more
-        \input{lit-review/solo-calc} %% TODO: Improve
-        \input{lit-review/solo-diagrams} %% TODO: Probably improve, note on bigraphs
-        \begin{remarks}
+        \input{lit-review/solo-calc} %% TODO: Improve, logical intuition of calculus
+        \input{lit-review/solo-diagrams} %% TODO: Probably improve, note on bigraphs, logical intuition to construction of diagrams
+        \begin{remarks} %% TODO: Summary/conclusion of lit review
             The Solo calculus is found to be simple, expressive and remarkable in its capability to be visualised as a diagram.
             For further reading,~\cite{acyclic-solos} present in great detail the topics of the $\pi$ and Solo calculus, solo diagrams and furthermore differential interaction nets.
         \end{remarks}
+
+    %% TODO: Requirements
 
     \section{Technology}
         \input{tech-review/graph-vis} %% TODO: Improve
@@ -68,26 +71,19 @@
 
     \section{Solo Calculus}
         \input{calculus/results}
-        \input{calculus/calculus}
-        \input{calculus/repl}
+        \input{calculus/calculus} %% TODO: Barendregt variable convention, flattening theorem, α looks horrid but necessary, fairness of reductions
+        \input{calculus/repl} %% TODO: Subject parity in alpha equivalence
 
     \section{Solo Diagrams}
         \input{diagrams/results}
-        \input{diagrams/diagrams}
-        \input{diagrams/visualisation}
+        \input{diagrams/diagrams} %% TODO: Further discussion on pros of diagrams, better to convert expression to diagram
+        \input{diagrams/visualisation} %% TODO: Finish section
 
     \section{Conclusion}
-        \input{meta/conclusion}
+        \input{meta/conclusion} %% TODO: Consequences of choices made
 
     \section{References}
         \bibliography{dissertation}
-
-    \section{Agreement}
-        \subsection{Student Signature}
-            \vspace{1in}
-
-        \subsection{Supervisor Signature}
-            \vspace{1in}
 
     \section{Appendix}
         \input{meta/appendix}

@@ -87,9 +87,9 @@
                 \Require{Agent $P$}
                 \Ensure{Agent $P'$, a reduction of $P$}
                 \Function{Reduce}{$P$}
-                    \ForEach{$i \in inputs(P)$} \Comment{$inputs(P) \equiv \{x \in solos(P) \;|\; x \text{ an input}\}$}
-                        \ForEach{$o \in outputs(P)$} \Comment{$outputs(P) \equiv \{x \in solos(P) \;|\; x \text{ an output}\}$}
-                            \If{$i$ agrees with $o$} \Comment{`agrees' $\equiv$ matching subject and arity}
+                    \ForEach{$i \in inputs(P)$}
+                        \ForEach{$o \in outputs(P)$}
+                            \If{$i$ agrees with $o$}
                                 \State$\sigma \defeq$ \Call{Fuse}{$i$, $o$, $bn(P)$}
                                 \If{$\sigma \neq \textit{none}$}
                                     \State\Return$\sigma(P - \{i, o\})$
@@ -208,12 +208,12 @@
                         \State$\ldots$
                     \EndFor\\
 
-                    \ForEach{$i \in \bigcup_{r \in reps(P)} inputs(r)$} \Comment{$reps(P) \equiv \{x \in P \;|\; x \text{ a replicator}\}$}
-                        \ForEach{$o \in \bigcup_{r \in reps(P)} outputs(r)$}
+                    \ForEach{$i \in inputs(R_i) \; | \; R_i \in \bigcup_{!R \in P} R$}
+                        \ForEach{$o \in outputs(R_o) \; | \; R_o \in \bigcup_{!R \in P} R$}
                             \If{$i$ agrees with $o$}
-                                \State$\sigma \defeq$ \Call{Fuse}{$i$, $o$, $bn(P) \cup bn(r_i) \cup bn(r_o)$} \Comment{$r_x \equiv r \in reps(P) \;|\; x \in solos(r)$}
+                                \State$\sigma \defeq$ \Call{Fuse}{$i$, $o$, $bn(P) \cup bn(R_i) \cup bn(R_o)$}
                                 \If{$\sigma \neq \textit{none}$}
-                                    \State\Return$P \cup \{expand(r_i), \; expand(r_o)\}$ \Comment{$expand(!R) \equiv R$}
+                                    \State\Return$P \cup \{R_i \; | \; R_o\}$
                                 \EndIf
                             \EndIf
                         \EndFor
@@ -250,7 +250,7 @@
                     \EndIf
                     \For{$comb_{scope} \in combinations(scope(P), scope(Q))$}
                         \State$\alpha_{P, Q} : x \mapsto y \; \forall \; (x, y) \in comb_{scope}$
-                        \For{$comb_{replicator} \in combinations(replicators(P), replicators(Q))$}
+                        \For{$comb_{replicator} \in combinations(\{R \; | \; !R \in P\}, \{R \; | \; !R \in Q\})$}
                             \ForEach{$(r_P, r_Q) \in comb_{replicator}$}
                                 \State$\alpha_{r_P, r_Q} \defeq$ \Call{$\alpha$-Equivalence}{$r_P, r_Q$}
                             \EndFor
