@@ -44,18 +44,18 @@ TestCrossReplicatorFusion
  TestCrossReplicatorFusion.TestZeroBound
 ()(u x | !()(̅u y | p x y)) -> ()(u x | !()(̅u y | p x y))
 ======================================================================
-TestInterReplicatorFusion
+TestIntraReplicatorFusion
 
- TestInterReplicatorFusion.TestOneBoundInner
+ TestIntraReplicatorFusion.TestOneBoundInner
 ()(p x y | !(x)(u x | ̅u y)) -> ()(p x y | !(x)(u x | ̅u y))
 
- TestInterReplicatorFusion.TestOneBoundOuter
+ TestIntraReplicatorFusion.TestOneBoundOuter
 (x)(p x y | !()(u x | ̅u y)) -> ()(p y y | u y | ̅u y | !()(u y | ̅u y))
 
- TestInterReplicatorFusion.TestTwoBound
+ TestIntraReplicatorFusion.TestTwoBound
 (y x)(p x y | !()(u x | ̅u y)) -> (u0)(p u0 u0 | u u0 | ̅u u0 | !()(u u0 | ̅u u0))
 
- TestInterReplicatorFusion.TestZeroBound
+ TestIntraReplicatorFusion.TestZeroBound
 ()(!()(u x | ̅u y | p x y)) -> ()(!()(u x | ̅u y | p x y))
 ======================================================================
 TestMultiReplicatorFusion

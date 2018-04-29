@@ -1,6 +1,6 @@
 \usepackage[margin=1.5in]{geometry}
 \usepackage{booktabs}
-\usepackage{fancyvrb}
+\usepackage{verbatim}
 \usepackage{mathtools}
 \usepackage{natbib}
 \usepackage{pgfgantt}
@@ -116,11 +116,3 @@
     \put(.9,2.5){\rotatebox{120}{\line(1,0){5.5}}}
     \put(.9,2.5){\rotatebox{240}{\line(1,0){5.5}}}
 \end{picture}}
-
-% redefine \VerbatimInput
-\RecustomVerbatimCommand{\VerbatimInput}{VerbatimInput}{
-    fontsize=\footnotesize,
-    framesep=2em, % separation between frame and text
-    commandchars=\|\{\},
-    commentchar=*
-}
