@@ -2,24 +2,35 @@
     
     \subsubsection{Overview and Analysis}\label{sssec:calculus-analysis}
         The implementation of reduction semantics and calculus objects was achieved through converting all expressions to a canonical normal form.
+        Due to the equivalence properties of the null agent $0$, it was excluded from the implementation as unnecessary.
         First, we must gather some possible structural congruences.
 
         \begin{lemma}{Structural Equivalence\\}
-            For any agents $P, Q, \ldots$, the following structural equivalences hold.
+            For any agents $P, Q, \ldots$ the following structural equivalences hold.
             \begin{align*}
                 (x)(y) P                & \equiv (x \, y) P \\
-                P \, | \, (Q \, | \, R) & \equiv P \, | \, Q \, | \, R \\
-                P \, | \, (x) Q         & \equiv (z)(P \, | \, Q\{z / x\}) \quad \text{where} \quad z \notin names(P) \cup names(Q) \\
-                !(x)(P \, | \, !Q)      & \equiv (z)(!(x)(P \, | \, z \, \tilde{x}) \, | \, !(\tilde{w})(\bar{z} \, \tilde{w} \, | \, Q\{\tilde{w}/\tilde{x}\})) \quad \text{where} \quad \tilde{x} \defeq fn(P)
+                P \; | \; (Q \; | \; R) & \equiv P \; | \; Q \; | \; R \\
+                P \; | \; (x) Q         & \equiv (z)(P \; | \; Q\{z / x\}) \quad \text{where} \quad z \notin names(P) \cup names(Q)
             \end{align*}
-            Using these congruences, we may reorder terms of expressions through $\alpha$-equivalence only.
+            Using these congruences, expressions may be freely reordered through $\alpha$-equivalence only.
         \end{lemma}
+
+        \begin{lemma}{Flattening Theorem\\}\label{flattening-theorem}
+            For any agents $P, Q$ the following (non-structural) equivalence holds.
+            \begin{align*}
+                !(\tilde{x})(P \; | \; !Q) \equiv (z)(!(\tilde{x})(P \; | \; z \, \tilde{y}) \; | \; !(\tilde{w})(\bar{z} \, \tilde{w} \; | \; Q\{\tilde{w}/\tilde{y}\})) \quad \text{where} \quad \tilde{y} \defeq fn(Q) \supset \tilde{x}
+            \end{align*}
+        \end{lemma}
+        \begin{corollary*}{Non-Nesting of Replicators\\}
+            By induction on $Q$ in Lemma~\ref{flattening-theorem}, any nesting of replicated agents may be flattened to a composition of non-nested replicators.
+        \end{corollary*}
+        This equivalence amounts to communicating between $P$ and $Q$ each bound name, allowing the two agents to `interact' within their shared scope, $\tilde{y}$ and $\tilde{w}$ respectively, without nesting replications.
 
         \begin{definition}{Normal Form\\}
             An agent $P$ is of normal form \textit{iff}
             \begin{align*}
-                                    P \quad &\equiv \quad (\tilde{x})(\prod_{i}{y_i \, \tilde{z_i}} \; | \; \prod_{j}{! \, Q_j}) \\
-                \text{where} \quad Q_j \quad &\equiv \quad (\tilde{x})(\prod_{k}{y_k \, \tilde{z_k}})
+                                    P \quad &\defeq \quad (\tilde{x})(\prod_{i}{y_i \, \tilde{z_i}} \; | \; \prod_{j}{! \, Q_j}) \\
+                \text{where} \quad Q_j \quad &\defeq \quad (\tilde{x})(\prod_{k}{y_k \, \tilde{z_k}})
             \end{align*}
             That is, P is written as a 3-tuple of a scope, a composition of solos and a composition of replicators, where each replicator is written as a 2-tuple of a scope and a composition of solos only.
         \end{definition}
@@ -76,8 +87,10 @@
                 \EndFunction
             \end{algorithmic}
         \end{breakablealgorithm}
-        Normalisation is then performed on an agent $P$ by $\texttt{Normalise}(P) \defeq \texttt{Normalise}(0, P)$
-        It will be seen later that this is exactly equivalent to how Solo diagrams are represented.
+        Normalisation is then performed on an agent $P$ by $\texttt{Normalise}(P) \defeq \texttt{Normalise}(0, P)$.
+        It will be seen later that this is exactly equivalent to how Solo Diagrams are represented.
+        To ease implementation difficulties later on, the replicators of any normal form are subject to Barendregt's variable naming convention.
+        That is, for $P \defeq (\tilde{x})(u \, \tilde{y} \; | \; \ldots \; | \; !Q)$, the bound names of $Q$ are free in $P \setminus !Q$.
         From here onwards, it is assumed that any agent has already been converted to normal form where appropriate.\\
 
         The algorithm for reductions is a simple search problem for two solos of matching subject and arity (number of names) and opposite parity (input vs. output).
@@ -141,7 +154,8 @@
             \end{algorithmic}
         \end{breakablealgorithm}
         
-        \begin{examples}
+        \begin{examples}{~\\}
+            The following serve as a visualisation on the graphs constructed for finding a given $\sigma$.
             \begin{figure}[H]
                 \centering
                 \begin{tikzpicture}[transform shape, every node/.style={circle, fill=black!100, inner sep=0.05cm}]
@@ -162,9 +176,9 @@
                     \draw[-] (e) -- (g);
                 \end{tikzpicture}
                 \caption*{$\texttt{Fuse}((a, b, c, d, e), \; (b, c, a, f, g)) \rightarrow \{\{a, b, c\}, \{d, f\}, \{e, g\}\}$}
-                
-                \vspace{3em}
-                
+            \end{figure}
+            \begin{figure}[H]
+                \centering
                 \begin{tikzpicture}[transform shape, every node/.style={circle, fill=black!100, inner sep=0.05cm}]
                     \coordinate[anchor=center](center);
                     \coordinate[below=0.5cm of center](fudgefactor);
@@ -192,7 +206,7 @@
         \end{examples}
 
         This forms a complete implementation of non-replicating parts of the calculus.
-        To avoid the implementation problems with replicators mentioned in~\cite{solo-diagrams}, it is necessary to only perform expansions on replicators that can be reduced.
+        To avoid the implementation problems with replicators mentioned by~\cite{solo-diagrams}, it is necessary to only perform expansions on replicators that can be reduced.
         While the method described in the aforementioned paper would be suitable, it is enough to simply search for replicators which may be reduced, but only expand them rather than perform a complete reduction.
         This eases some implementation details and minimises code duplication while remaining correct.
         The expansion will be reduced on the next pass of the \texttt{Reduce} function.
@@ -273,6 +287,9 @@
                 \EndFunction
             \end{algorithmic}
         \end{breakablealgorithm}
+        Note that the algorithm here does not take into account parity of subjects.
+        While parities of free subject names do effect $\alpha$-equivalence, those of bound subject names may be reversed.
+        That is, while $u \, x \neq \bar{u} \, x$, it does hold that $(u)u \, x \equiv (u)\bar{u} \, x$.
 
 
     \subsubsection{Discussion}
@@ -290,7 +307,7 @@
             In both cases, $y$ and $x$ are fused into the free name $x$. The scope of $y$ disappears and the remaining `print' term displays the result of the fusion.
             Consider now the (inequivalent) expression.
             \begin{align*}
-                R \quad & \defeq \quad (a \, x \, | \, (y)\bar{a} \, y \, | \, p \, y)
+                R \quad & \defeq \quad (a \, x \; | \; (y)\bar{a} \, y \; | \; p \, y)
             \end{align*}
             This term, while similar to $P$ and $Q$, reduces to the term $p \, y$, as our scoped $y$ that is fused is not the same as the free $y$ that is `printed'.
             This can be seen through $\alpha$-equivalence and renaming $(y)\bar{a} \, y$ to the equivalent term $(z)\bar{a} \, z$ and observing that $a$ is a fusion on $x$ and $z$.

@@ -9,7 +9,7 @@
         \footnotetext{See~\cite{pi-calculus} for the original definitions and semantics. The following are functionally equivalent and \textit{I personally believe that the further research on the topic has led to improved definitions and descriptions of the subject.}}
         \begin{center} % revise from ccs document? %
             \begin{tabular}{ l l l }
-                $P \quad \defeq$    & $Q \, | \, R$         & (concurrency) \\
+                $P \quad \defeq$    & $Q \; | \; R$         & (concurrency) \\
                                     & $Q + P$               & (choice) \\
                                     & $c(x).Q$              & (input prefix) \\
                                     & $\bar{c}(x).Q$        & (output prefix) \\
@@ -21,13 +21,13 @@
             \end{tabular}
         \end{center}
         \addtocounter{footnote}{-1}\footnotetext{This explicitly declares x as local within Q.}
-        \stepcounter{footnote}\footnotetext{Replication is defined in theory as $P! \defeq{} P \, | \, P!$. However, this causes problems in computation as to how much to replicate and is in fact computed differently.}
+        \stepcounter{footnote}\footnotetext{Replication is defined in theory as $P! \defeq{} P \; | \; P!$. However, this causes problems in computation as to how much to replicate and is in fact computed differently.}
         where all operations are as found in CCS.
         The notable difference is allowing the sending and receiving of channel names over a channel, similar to passing pointers in traditional programs.
     \end{definition}
     It is worth noting that the match and choice operators are not strictly needed, but are often included as they are usually required to be defined within the calculus anyway.
-    The lack of the relabelling operator from CCS (written $[b/a]$) may be surprising at first, but the same can be achieved through a definition.
-    That is, $P[a'/a, b'/b]$ can be recreated within the $\pi$-calculus by \textit{identifying} $P(x, y)$ with $P[x/a, y/b]$ in a fashion similar to C-style functions.
+    The lack of the relabelling operator from CCS (written $\{b / a\}$) may be surprising at first, but the same can be achieved through a definition.
+    That is, $P\{a'/a, b'/b\}$ can be recreated within the $\pi$-calculus by \textit{identifying} $P(x, y)$ with $P\{x/a, y/b\}$ in a fashion similar to C-style functions.
     This is simply for the purpose of saving an otherwise unnecessary operator.
 
 

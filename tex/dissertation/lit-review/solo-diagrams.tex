@@ -1,16 +1,15 @@
 \subsection{Solo Diagrams}\label{ssec:diagram-definitions}
 
-    The Solo calculus was further developed by~\cite{solo-diagrams} to provide a one-to-one correspondence between these  expressions and `diagram-like' objects.
+    The Solo Calculus was further developed by~\cite{solo-diagrams} to provide a one-to-one correspondence between these  expressions and `diagram-like' objects.
     This provides a strong analog to real-world systems and an applicability to be used as a modelling tool for groups of communicating systems.
-    Furthermore, as discussed by~\cite{learning-styles}, a visual output of information is often found to be preferable for cognition than verbal or textual information.
-
+    Furthermore, as discussed by~\cite{learning-styles}, a visual output of information is often found to be preferable for cognition than verbal or textual information.\\
 
     \begin{definition}{Edge\\}
         An edge is defined to be:
         \begin{align*}
             E \defeq \, \langl a, a_1 \ldots a_k\rangl_t \quad \text{for } t \in \{ i, o \}
         \end{align*}
-        where $a, a_i$ are \textit{nodes}, $\langl\ldots angl_i$ is an \textit{input edge}, $\langl\ldots angl_o$ is an \textit{output edge} and $k$ the edge's \textit{arity}.
+        where $a, a_i$ are \textit{nodes}, $\langl \ldots\rangl_i$ is an \textit{input edge}, $\langl\ldots\rangl_o$ is an \textit{output edge} and $k$ the edge's \textit{arity}.
     \end{definition}
 
     \begin{figure}[H]
@@ -41,9 +40,9 @@
         \end{subfigure}
     \end{figure}
 
-    This is analogous to an input or output solo in the calculus, where $a$ is $u$ or $\bar{u}$ and $a_1 \ldots a_n$ is $\tilde{x}$ as written in Definition~\ref{solo-calculus-syntax}.
+    This is analogous to an input or output solo $u \, \tilde{x}$ in the calculus, where $a$ is $u$ or $\bar{u}$ and $a_1 \ldots a_n$ is $\tilde{x}$ as written in Definition~\ref{solo-calculus-syntax}.
+    The intuition here is to define such an object within the diagrams for each type of agent in the calculus.
     Note that inputs and outputs must have matching arity --- a 2-arity input cannot communicate with a 3-arity output for obvious reasons.
-
 
     \begin{definition}{Box\\}
         A box is defined to be:
@@ -72,12 +71,11 @@
                 \draw[-{<[scale=2]}] (wxyx) -- (x);
                 \draw[-{>[scale=2]}] (y) to [out=140, in=10] (w);
             \end{tikzpicture}
-            \caption*{Box representing $!(w)(x \, w y \, | \, \tilde{w} \, y)$}
+            \caption*{Box representing $!(w)(x \, w y \; | \; \tilde{w} \, y)$}
         \end{subfigure}\footnotemark
     \end{figure}\footnotetext{Usually the $w$ in the diagram would be excluded, but is included here for illustration purposes only.}
 
     This can then be seen to be analogous to the replication operator, with the idea being that the principal nodes form the perimeter of a box and cannot be replicated --- they serve as the interface to the internals of the box.
-
 
     \begin{definition}{Diagram\\}
         A solo diagram is defined to be:
@@ -86,13 +84,13 @@
         \end{align*}
         where $G$ is a finite multiset of \textit{edges}, $M$ is a finite multiset of \textit{boxes} and $\ell$ a labelling of the $nodes(G)$ and of $principals(M)$.
     \end{definition}
-    From here, we can convert Solo calculus to diagrams, where composition is intuitively just including two separate diagrams together and scope is simply any connected nodes labelled by $\ell$.
+    
+    From here, we can convert Solo Calculus to Diagrams, where composition is intuitively just including two separate diagrams together and scope is simply any connected nodes labelled by $\ell$.
     There are then four required reduction cases (edge-edge, edge-box, box-box and box internals) which can be deduced from the definition of the calculus.
 
-
     \begin{definition}{Diagram Reduction\\}
-        Let $G, G_1, G_2 \ldots$ be arbitrary graphs, $M, M'$ arbitrary box multisets, $\alpha \defeq \langl a, a_1 \ldots a_k\rangl_i$, $\beta \defeq \langl a, a_1' \ldots a_k'\rangl_o$, $\sigma \defeq a_i \mapsto a_i'$, $\rho$ a arbitrary but fresh relabelling and $G\sigma$ shorthand for $G[\sigma]$ the application of the renaming $\sigma$ on the edges of G.
-        $\alpha$ and $\beta$ need not be fixed to input and output respectively, but must be opposite polarity.
+        Let $G, G_1, G_2 \ldots$ be arbitrary graphs, $M, M'$ arbitrary box multisets, $\alpha \defeq \langl a, a_1 \ldots a_k\rangl_i$, $\beta \defeq \langl a, a_1' \ldots a_k'\rangl_o$, $\sigma \defeq a_i \mapsto a_i'$, $\rho$ a arbitrary but fresh relabelling and $G\sigma$ shorthand for $\sigma(G) \equiv G\{dom(\sigma) / ran(\sigma)\}$ the application of the renaming $\sigma$ on the edges of G.
+        $\alpha$ and $\beta$ need not be fixed to input and output respectively, but must be opposite parity.
         Then, the following reductions may be made:
         \begin{align*}
             (G \cup \{\alpha, \beta\}, M, \ell)                                                                             & \rightarrow (G\sigma, M\sigma, \ell') \\
@@ -102,7 +100,6 @@
         \end{align*}
         where each represents reduction of an edge-edge, edge-box, box-box and of box internals respectively.
     \end{definition}
-
 
     \begin{example*}
         \begin{figure}[H]
@@ -128,7 +125,7 @@
                     \draw[-] (w) -- (xaa) -- (v);
                     \draw[-] (y) -- (xba) -- (z);
                 \end{tikzpicture}
-                \caption*{$\bar{x}\, y z \, | \, !(uv)(x \, u v \, | \, \bar{u} \, v)$}
+                \caption*{$\bar{x}\, y \, z \; | \; !(u \, v)(x \, u \, v \; | \; \bar{u} \, v)$}
             \end{subfigure}
             $\longrightarrow$
             \begin{subfigure}{0.4\linewidth}
@@ -151,14 +148,14 @@
                     \draw[-] (w) -- (xaa) -- (v);
                     \draw[-{>[scale=2]}] (z) -- (y);
                 \end{tikzpicture}
-                \caption*{$\bar{y} \, z \, | \, !(uv)(x \, u v \, | \, \bar{u} \, v)$}
+                \caption*{$\bar{y} \, z \; | \; !(u \, v)(x \, u \, v \; | \; \bar{u} \, v)$}
             \end{subfigure} 
         \end{figure}
     \end{example*}
 
     \begin{remark*}
-        The graph objects associated with Solo diagrams are particularly similar to bigraphs.
-        These are a combination of a `link graph' and a `place graph', where the collection of nodes and edges forms the former and the subgraphs within boxes dictate the latter.
+        The graph objects associated with Solo Diagrams are particularly similar to bigraphs.
+        These are a combination of a (possibly cyclic) `link graph' and a (strictly acyclic) `place graph', where the collection of nodes and edges forms the former and the subgraphs within boxes dictate the latter.
         Despite these two similar areas of research, including overlapping research by~\cite{bigraphs-pervasive-calculus}, it is found to be less relevant for this topic.
     \end{remark*}
 

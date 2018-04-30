@@ -16,16 +16,16 @@
                                     & $x$                       & (variable) \\
                                     & $\tau$                    & (silent action) \\
                                     & $a x_1 \ldots x_n$        & (action on $x_1 \ldots x_n$)~\footnotemark\\
-                                    & $P \, | \, Q$             & (composition) \\
+                                    & $P \; | \; Q$             & (composition) \\
                                     & $P + Q$                   & (choice / summation)\\
                                     & $P \backslash a$          & (restriction) \\
-                                    & $P[b / a]$                & (relabelling, a $\defeq$ b)~\footnotemark\\
+                                    & $P\{b / a\}$                & (relabelling, a $\defeq$ b)~\footnotemark\\
                                     & $x(x_1 \ldots x_n)$       & (identifier) \\
                                     & if $x$ then $P$ else $Q$  & (conditional)
             \end{tabular}
         \end{center}
         \addtocounter{footnote}{-2}\footnotetext{These actions come in pairs $a$ and $\bar{a}$ representing input and output respectively.}
-        \stepcounter{footnote}\footnotetext{There may be multiple relabellings at once, so this is often written $p[S]$ where the function $S$ has $dom(S) = \{a\}\, ran(S) = \{b\}$}
+        \stepcounter{footnote}\footnotetext{There may be multiple relabellings at once, so this is often written $p\{S\}$ where the function $S$ has $dom(S) = \{a\}\, ran(S) = \{b\}$}
     \end{definition}
     When comparing to the $\lambda$-calculus from Definition~\ref{lambda-calculus-syntax}, certain parallels can be seen.
     Notable additions are the action operator and the composition operators (parallel composition and choice). \\
@@ -38,7 +38,7 @@
         Given two processes waiting on input/output, eventually an input/output action will happen.
         This gives the reductions as follows:
         \begin{align*}
-            a x_1 \ldots x_n . P        & \xrightarrow{a v_1 \ldots v_n} P[v_1 / x_1 \ldots v_n / x_n] \\
+            a x_1 \ldots x_n . P        & \xrightarrow{a v_1 \ldots v_n} P\{v_1 / x_1 \ldots v_n / x_n\} \\
             \bar{a} v_1 \ldots v_n . P  & \xrightarrow{\bar{a} v_1 \ldots v_n} P \\
             \tau . P                    & \xrightarrow{\tau} P
         \end{align*}
@@ -51,13 +51,13 @@
             P \xrightarrow{a} P' \implies &
             \begin{cases}
                 P + Q \xrightarrow{a} P' \\
-                P \, | \, Q \xrightarrow{a} P' \\
+                P \; | \; Q \xrightarrow{a} P' \\
             \end{cases} \\
             \begin{rcases}
                 P \xrightarrow{a} P' \\
                 Q \xrightarrow{\bar{a}} Q' \\
             \end{rcases} \implies &
-            P \, | \, Q \xrightarrow{\tau} P' \, | \, Q'
+            P \; | \; Q \xrightarrow{\tau} P' \; | \; Q'
         \end{align*}
     \end{definition}
     The choice here of whether to follow the left or right side is non-deterministic.
@@ -121,7 +121,7 @@
             P \xrightarrow{a x} P' \implies
             \begin{cases}
                 P \backslash b \xrightarrow{a x} P ' \backslash b \quad \text{if } a \notin \{b, \bar{b}\}\\
-                P[S] \xrightarrow{S(a) x} P'[S] \\
+                P\{S\} \xrightarrow{S(a) x} P'\{S\} \\
             \end{cases}
         \end{align*}
     \end{definition}
@@ -132,7 +132,7 @@
         Suppose a behaviour identifier $b$ is defined (possibly recursively) as $b(x_1 \ldots x_n) \impliedby P$, and that for the process $P$, $FV(P) \subseteq \{x_1 \ldots x_n\}$.
         Then processes may be reduced as follows:
         \begin{align*}
-            P[v_1 / x_1 \ldots v_n / x_n] \xrightarrow{a x} P' \implies
+            P\{v_1 / x_1 \ldots v_n / x_n\} \xrightarrow{a x} P' \implies
             b(v_1 \ldots v_n) \xrightarrow{a x} P'
         \end{align*}
     \end{definition}
@@ -145,5 +145,5 @@
         However it struggles to describe the low-level atomic actions.
         An encoding of, say, a list is difficult as the language revolves around systems communicating with one another through input/output synchronisation. \\
 
-        The Tea/Coffee Problem should be kept in mind for the following calculi, particularly for the Solo calculus.
+        The Tea/Coffee Problem should be kept in mind for the following calculi, particularly for the Solo Calculus.
     \end{remarks}
