@@ -89,7 +89,7 @@
     There are then four required reduction cases (edge-edge, edge-box, box-box and box internals) which can be deduced from the definition of the calculus.
 
     \begin{definition}{Diagram Reduction\\}
-        Let $G, G_1, G_2 \ldots$ be arbitrary graphs, $M, M'$ arbitrary box multisets, $\alpha \defeq \langl a, a_1 \ldots a_k\rangl_i$, $\beta \defeq \langl a, a_1' \ldots a_k'\rangl_o$, $\sigma \defeq a_i \mapsto a_i'$, $\rho$ a arbitrary but fresh relabelling and $G\sigma$ shorthand for $\sigma(G) \equiv G\{dom(\sigma) / ran(\sigma)\}$ the application of the renaming $\sigma$ on the edges of G.
+        Let $G, G_1, G_2 \ldots$ be arbitrary graphs, $M, M'$ arbitrary box multisets, $\alpha \defeq \langl a, a_1 \ldots a_k\rangl_i$, $\beta \defeq \langl a, a_1' \ldots a_k'\rangl_o$, $\sigma \defeq a_i \mapsto a_i'$, $\rho$ a arbitrary but fresh relabelling and $G\sigma$ shorthand for $\sigma(G) \defeq G\{dom(\sigma) / ran(\sigma)\}$ the application of the renaming $\sigma$ on the edges of G.
         $\alpha$ and $\beta$ need not be fixed to input and output respectively, but must be opposite parity.
         Then, the following reductions may be made:
         \begin{align*}

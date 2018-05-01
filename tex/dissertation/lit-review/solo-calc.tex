@@ -21,7 +21,7 @@
             \end{tabular}
         \end{center}\footnotetext{$\tilde{x}$ is used as shorthand for any tuple $(x_1 \ldots x_n)$.}
         where the scope operator $(x) \, P $ is a declaration of the named variable $x$ in $P$.
-        This ensures that $x$ is local to $P$, even if it assigned outside of $P$ (ex. $(x \, y | (x) \, P)$ will never have $x \defeq y$ unless explicitly assigned such in P).
+        This ensures that $x$ is local to $P$, even if it assigned outside $P$ (ex. $(x \, y | (x) \, P)$ will never have $x \defeq y$ unless explicitly assigned such in P).
     \end{definition}
     This is a much more minimal syntax when compared to CCS (and certainly Higher-Order CCS as described by~\cite{pi-calculus-in-ccs}).
     It will further be seen that the reduction rules retain this simplicity.

@@ -18,7 +18,7 @@
         \begin{lemma}{Flattening Theorem\\}\label{flattening-theorem}
             For any agents $P, Q$ the following (non-structural) equivalence holds.
             \begin{align*}
-                !(\tilde{x})(P \; | \; !Q) \equiv (z)(!(\tilde{x})(P \; | \; z \, \tilde{y}) \; | \; !(\tilde{w})(\bar{z} \, \tilde{w} \; | \; Q\{\tilde{w}/\tilde{y}\})) \quad \text{where} \quad \tilde{y} \defeq fn(Q) \supset \tilde{x}
+                !(\tilde{x})(P \; | \; !Q) \sim (z)(!(\tilde{x})(P \; | \; z \, \tilde{y}) \; | \; !(\tilde{w})(\bar{z} \, \tilde{w} \; | \; Q\{\tilde{w}/\tilde{y}\})) \quad \text{where} \quad \tilde{y} \defeq fn(Q) \supset \tilde{x}
             \end{align*}
         \end{lemma}
         \begin{corollary*}{Non-Nesting of Replicators\\}
@@ -36,7 +36,7 @@
         \end{definition}
 
         \begin{lemma}{~\\}
-            For any agent P, $\exists \, Q \equiv P$ such that Q is in normal form.
+            For any agent P, $\exists \, Q \sim P$ such that Q is in normal form.
             \begin{proof}
                 The proof is trivial by applying recursively the equivalences above.
                 See below for an algorithm for such a construction.
@@ -245,7 +245,7 @@
         An in-depth description can be found in~\ref{sssec:repl-testing}. \\
         
         Early tests could be tested by string equalities and this was sufficient.
-        However, more complicated agents led to non-deterministic results and non-trivial equalities.
+        More complicated agents however led to non-deterministic results and non-trivial equalities.
         The first example of this occured while comparing the following agents:
         \begin{align*}
             (x) p \, x \quad\equiv\quad (y) p \, y \quad\neq\quad (x) p \, y
@@ -288,7 +288,7 @@
             \end{algorithmic}
         \end{breakablealgorithm}
         Note that the algorithm here does not take into account parity of subjects.
-        While parities of free subject names do effect $\alpha$-equivalence, those of bound subject names may be reversed.
+        While parities of free subject names do affect $\alpha$-equivalence, those of bound subject names may be reversed.
         That is, while $u \, x \neq \bar{u} \, x$, it does hold that $(u)u \, x \equiv (u)\bar{u} \, x$.
 
 
@@ -304,7 +304,7 @@
                 Q \quad & \defeq \quad (a \, x \,|\, (y)(\bar{a} \, y \,|\, p \, y))
             \end{align*}
             Both $P$ and $Q$ have the property that $y$ is a bound name and both should reduce to the term $p \, x$.
-            In both cases, $y$ and $x$ are fused into the free name $x$. The scope of $y$ disappears and the remaining `print' term displays the result of the fusion.
+            In both cases, $y$ and $x$ are fused into the free name $x$. The scope of $y$ disappears and the remaining $p$ term, which may be thought of as a `print' instruction, displays the result of the fusion.
             Consider now the (inequivalent) expression.
             \begin{align*}
                 R \quad & \defeq \quad (a \, x \; | \; (y)\bar{a} \, y \; | \; p \, y)

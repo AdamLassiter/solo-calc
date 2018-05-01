@@ -96,21 +96,20 @@
         Trace equivalence is considered the weakest equivalence for two systems. \\
 
         Bisimulation however holds roots from a more mathematical standpoint --- does there exist a bijection between behaviours of each system \textit{at any given step}.
-        More specifically, two processes $P, Q$ are bisimilar (written $P \, \mathcal{R} \, Q$) if:
+        More specifically, two processes $P, Q$ are bisimilar (written $P \sim Q$) if:
         \begin{equation*}
             \begin{rcases}
-                P \, \mathcal{R} \, Q \\
-                P \xrightarrow{\alpha} P' \\
-            \end{rcases} \implies \exists Q' \, :
+                P \sim Q \\
+                P \rightarrow P' \\
+            \end{rcases} \implies \exists \, Q' \, :
             \begin{cases}
-                Q \xrightarrow{\alpha} Q' \\
-                P' \, \mathcal{R} \, Q' \\
+                Q \rightarrow Q' \\
+                P' \sim Q' \\
             \end{cases}
         \end{equation*}
         This is a much stronger property and is one of the strongest that can be shown except for $\alpha$-equivalence (identical up to name-substitution). \\
         
-        From the Tea/Coffee Problem, it can be seen that the two systems are trace-equivalent.
-        However, they are not behaviourally-equivalent.
+        From the Tea/Coffee Problem, it can be seen that the two systems are trace-equivalent, despite not being behaviourally-equivalent.
         Trace-equivalence is less useful once the restriction on deterministic processes or on all input being provided at once is removed.
     \end{remark*}
 

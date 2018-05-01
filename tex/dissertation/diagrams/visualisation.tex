@@ -43,8 +43,8 @@
         \end{itemize}
 
         The filter operation is only necessary to manage discrepancies in how nodes are partitioned into those in boxes and those not.
-        The naive method would be to gather the sets of nodes referenced in each graph's set of edges.
-        However, principal nodes on the perimeter of boxes will be included both within their respective box and in the surrounding graph (unless the box is disconnected).
+        The naive method would be to gather the sets of nodes referenced in each graph's set of edges, but this has its problems.
+        Principal nodes on the perimeter of boxes will be included both within their respective box and in the surrounding graph (unless the box is disconnected).
         For this reason, principal nodes are considered part of the parent graph --- consider the case of two boxes sharing a principal node, this requires the principal to either be in both boxes or in the parent graph.
         Furthermore, when black box styles are drawn around diagram boxes, nodes on the perimeter may be outside the box as drawn, but the end of the polyline connecting the node to the internal graph must stay in the drawn box.
         This leaves perimeter nodes sitting precisely on the perimeter, neither wholly inside or out.\\
@@ -129,7 +129,7 @@
         In this way, while not compromising the multiset properties of diagrams, the pitfalls may be avoided --- the reduction may be performed again, but only once the residue of the last reduction has been affected.\footnotemark
         \footnotetext{This is not a perfect solution still as one can build a similar infinite loop between two repeated reductions that interact with one another etc\ldots}
         Further options would include performing multiple reductions across the diagram as a whole in one step, ensuring that every reduction that can be performed will be performed.
-        However, this will lead to excessive reductions on such non-finite subdiagrams.
+        Unfortunately, this will lead to excessive reductions on such non-finite subdiagrams.
         \textit{I believe this area more than most is still requiring further research and development.}\\
 
         The multiple cases of ambiguity leave something to be desired.

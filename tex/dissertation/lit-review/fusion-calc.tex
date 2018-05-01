@@ -59,7 +59,7 @@
 
     \begin{example*}
         Within the Fusion Calculus --- like the $\pi$-calculus --- input and output actions block computation of a process until the input/output action is performed.
-        However, we may define an asynchronous, delayed input that allows $P$ to continue with computation before binding an inputted value $x$ from a channel $u$.
+        We may instead define an asynchronous, delayed input that allows $P$ to continue with computation before binding an inputted value $x$ from a channel $u$.
         \begin{align*}
             u(x): P \, \defeq \, (x)(ux \; | \; P)
         \end{align*}
