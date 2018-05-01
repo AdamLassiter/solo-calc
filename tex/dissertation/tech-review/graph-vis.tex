@@ -12,8 +12,8 @@
             \item Lengths of edges are consistent
             \item Diagram will adapt as the graph changes
         \end{itemize}
-        Here, `nice diagrams' is found to be mostly equivalent to springy force-directed diagrams such that addition or subtraction of parts of the graph, or manual manipulation of position, still leaves a graph that has nodes distributed evenly.
     \end{definition*}
+    Here, `nice diagrams' is found to be mostly equivalent to springy force-directed diagrams such that addition or subtraction of parts of the graph, or manual manipulation of position, still leaves a graph that has nodes distributed evenly.
 
 
     \begin{examples}
@@ -30,10 +30,9 @@
     \end{examples}\footnotetext{These both have many language-specific APIs, so can be used from multiple languages and environments. The original library and interface is however written in C.}
 
     
-    \begin{remarks}
-        Most of these libraries, especially those that allow interactivity with the output, are written for web-browsers and are subsequently written in ECMAScript as the popular choice.
-        With this in mind, this project is likely to focus on the use of the latter-mentioned \textit{d3.js}, which produces an interactive output or SVG from a JSON source.
-        The reasoning for this choice is based upon both the features available and the relative maturity of the library.
-        The popularity of the library across a large number of people, coupled with a development history dating back to early 2011, provides evidence of a usable, feature-rich solution.
-        Furthermore, the open-endedness of program I/O through use of HTTP GET/PUT/POST ensures language interoperability will not be hindered too much.
-    \end{remarks}
+    Most of these libraries, especially those that allow interactivity with the output, are written for web-browsers and are subsequently written in ECMAScript as the popular choice.
+    With this in mind, this project is likely to focus on the use of the latter-mentioned \textit{d3.js}, which produces an interactive output or SVG from a JSON source.
+    The reasoning for this choice is based upon both the features available and the relative maturity of the library.
+    The dynamic nature of ECMAScript should ease development issues concerning memory management, while the size of the dataset should not cause notable performance hits when compared to a more performant language.
+    The popularity of the \textit{d3.js} library across a large number of people, coupled with a development history dating back to early 2011, provides evidence of a usable, feature-rich solution.
+    Furthermore, the open-endedness of program I/O through use of HTTP GET/PUT/POST ensures language interoperability will not be hindered too much.

@@ -14,21 +14,26 @@
             The elements $X_i$ need not be distinct.
             In particular, $M$ is a map relating each element of the underlying set to a positive integer.
         \end{definition}
+
         \begin{definition}{Diagram\\}
             A diagram $D$ is a 2-tuple $(G, M)$ where $G$ is a graph and $M$ a multiset of boxes.
         \end{definition}
+
         \begin{definition}{Graph\\}
             A graph $G$ is a multiset of edges.
         \end{definition}
+
         \begin{definition}{Box\\}
             A box $B$ is a 2-tuple $(G, S)$ where $G$ is a graph and $S \subset nodes(G)$ set of internal nodes.
             $S$ is the internal nodes of $B$ and $nodes(G) \setminus S$ the principal or perimeter nodes.
         \end{definition}
+
         \begin{definition}{Edge\\}
             An edge $E$ is a k-tuple of names $(x, [x_1, \, \ldots, \, x_{k-1}])$ and a parity $p \in \{in, \, out\}$ where $x$ is the subject of $E$ and $x_1, \, \ldots, \, x_{k-1}$ the objects.
             $E$ is then written $<x, x_1, \cdots, x_{k-1}>_p$
             Note the case $k = 1$ where $E$ has no objects.
         \end{definition}
+
         \begin{definition}{Node\\}
             A node $x$ is a unique identifier \texttt{uuid} and optionally a labelling \texttt{name}.
         \end{definition}
